@@ -1,0 +1,386 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: author
+      changes:
+        - createTable:
+            tableName: node
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  autoIncrement: false
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: parent_id
+                  type: UUID
+                  constraints:
+                    nullable: true
+              - column:
+                  name: dtype
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 2
+      author: author
+      changes:
+        - createTable:
+            tableName: ale_antrag
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  autoIncrement: false
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_aleantrag_node
+                    references: node(id)
+              - column:
+                  name: created_at
+                  type: timestamp
+              - column:
+                  name: updated_at
+                  type: timestamp
+              - column:
+                  name: status
+                  type: VARCHAR(255)
+              - column:
+                  name: owner_user_id
+                  type: VARCHAR(255)
+
+  - changeSet:
+      id: 13
+      author: yourname
+      changes:
+        - createTable:
+            tableName: document_uploads
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: owner_user_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: later_upload
+                  type: boolean
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: 14
+      author: yourname
+      changes:
+        - createTable:
+            tableName: attachment
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: owner_user_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: document_upload_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: document_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: document_type
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: submitted
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: readonly
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: mime_type
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: 15
+      author: yourname
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: attachment
+            baseColumnNames: document_upload_id
+            constraintName: fk_attachment_document_upload
+            referencedTableName: document_uploads
+            referencedColumnNames: id
+
+  - changeSet:
+      id: 6
+      author: author
+      changes:
+        - createTable:
+            tableName: iban_question
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  autoIncrement: false
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_iban_question
+                    references: node(id)
+              - column:
+                  name: iban
+                  type: VARCHAR(255)
+
+  - changeSet:
+      id: 7
+      author: author
+      changes:
+        - createTable:
+            tableName: disability_insurance_answer
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  autoIncrement: false
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_disability_insurance_answer
+                    references: node(id)
+              - column:
+                  name: request_date
+                  type: date
+                  constraints:
+                    nullable: true
+              - column:
+                  name: receive_date
+                  type: date
+                  constraints:
+                    nullable: true
+              - column:
+                  name: payment_type
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: payment
+                  type: decimal(10,2)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: required_document_upload_id
+                  type: UUID
+                  constraints:
+                    foreignKeyName: fk_answer_node_required_document_upload
+                    references: document_uploads(id)
+              - column:
+                  name: optional_document_upload_id
+                  type: UUID
+                  constraints:
+                    foreignKeyName: fk_answer_node_optional_document_upload
+                    references: document_uploads(id)
+  - changeSet:
+      id: 8
+      author: author
+      changes:
+        - createTable:
+            tableName: disability_insurance_question
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  autoIncrement: false
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_disability_insurance_question
+                    references: node(id)
+              - column:
+                  name: yes_no
+                  type: BOOLEAN
+
+
+  - changeSet:
+      id: 9
+      author: author
+      changes:
+        - createTable:
+            tableName: child
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  autoIncrement: false
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_child_node
+                    references: node(id)
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+
+  - changeSet:
+      id: 10
+      author: author
+      changes:
+        - createTable:
+            tableName: child_question
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  autoIncrement: false
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_child_question
+                    references: node(id)
+              - column:
+                  name: yes_no
+                  type: BOOLEAN
+
+
+  - changeSet:
+      id: 11
+      author: author
+      changes:
+        - createTable:
+            tableName: child_personal_data_answer
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  autoIncrement: false
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_child_personal_data_answer
+                    references: node(id)
+              - column:
+                  name: vorname
+                  type: VARCHAR(255)
+              - column:
+                  name: nachname
+                  type: VARCHAR(255)
+              - column:
+                  name: ahv_nummer
+                  type: VARCHAR(255)
+              - column:
+                  name: geburtsdatum
+                  type: date
+              - column:
+                  name: required_document_upload_id
+                  type: UUID
+                  constraints:
+                    foreignKeyName: fk_answer_node_required_document_upload
+                    references: document_uploads(id)
+              - column:
+                  name: optional_document_upload_id
+                  type: UUID
+                  constraints:
+                    foreignKeyName: fk_answer_node_optional_document_upload
+                    references: document_uploads(id)
+
+  - changeSet:
+      id: 12
+      author: author
+      changes:
+        - createTable:
+            tableName: child_personal_data_question
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  autoIncrement: false
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_child_personal_data_question
+                    references: node(id)
+              - column:
+                  name: yes_no
+                  type: BOOLEAN
+
+
+  - changeSet:
+      id: 16
+      author: author
+      changes:
+        - createTable:
+            tableName: work_ability_answer
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_work_ability_answer
+                    references: node(id)
+              - column:
+                  name: work_ability_percent
+                  type: integer
+                  constraints:
+                    nullable: true
+              - column:
+                  name: required_document_upload_id
+                  type: UUID
+                  constraints:
+                    foreignKeyName: fk_answer_node_required_document_upload
+                    references: document_uploads(id)
+              - column:
+                  name: optional_document_upload_id
+                  type: UUID
+                  constraints:
+                    foreignKeyName: fk_answer_node_optional_document_upload
+                    references: document_uploads(id)
+  - changeSet:
+      id: 17
+      author: author
+      changes:
+        - createTable:
+            tableName: work_ability_question
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_work_ability_question
+                    references: node(id)
+              - column:
+                  name: yes_no
+                  type: BOOLEAN
+

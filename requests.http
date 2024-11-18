@@ -1,0 +1,174 @@
+###
+GET http://localhost:9999/api/ale_antrag
+Content-Type: application/json
+
+### create new Antrag
+POST http://localhost:9999/api/ale_antrag
+
+###
+GET http://localhost:9999/api/ale_antrag/{{antrag_id}}
+Content-Type: application/json
+
+###
+DELETE http://localhost:9999/api/ale_antrag/9207b417-a859-4cd3-9851-c8a425c4ef2b
+Content-Type: application/json
+
+### update IbanQuestion
+PATCH http://localhost:9999/api/ale_antrag/{{antrag_id}}/child-nodes
+Content-Type: application/json
+
+{
+  "id": "{{iban_question_id}}",
+  "dtype": "iban_question",
+  "iban": "DE89370400440532013000"
+}
+
+
+### update ChildQuestion true
+PATCH http://localhost:9999/api/ale_antrag/{{antrag_id}}/child-nodes
+Content-Type: application/json
+
+{
+  "id": "{{child_question_id}}",
+  "childNodes": [],
+  "dtype": "child_question",
+  "yesNo": true
+}
+
+### add a child
+POST http://localhost:9999/api/ale_antrag/{{antrag_id}}/{{child_question_id}}/child-nodes
+
+### remove a child
+DELETE http://localhost:9999/api/ale_antrag/{{antrag_id}}/child-nodes/8e0a1fa0-ab9a-48f9-b60a-e1bda87e9b2a
+
+
+### update work_ability
+PATCH http://localhost:9999/api/ale_antrag/{{antrag_id}}/child-nodes
+Content-Type: application/json
+
+{
+  "id": "{{work_ability_id}}",
+  "childNodes": [  ],
+  "dtype": "work_ability",
+  "yesNo": true
+}
+
+### update disability_insurance
+PATCH http://localhost:9999/api/ale_antrag/{{antrag_id}}/child-nodes
+Content-Type: application/json
+
+{
+  "id": "{{disability_insurance_id}}",
+  "childNodes": [
+  ],
+  "dtype": "disability_insurance",
+  "yesNo": true
+}
+
+### update disability_insurance
+PATCH http://localhost:9999/api/ale_antrag/{{antrag_id}}/child-nodes
+Content-Type: application/json
+
+{
+  "id": "{{disability_insurance_id}}",
+  "childNodes": [],
+  "dtype": "disability_insurance",
+  "yesNo": true
+}
+
+### update disability_insurance
+PATCH http://localhost:9999/api/ale_antrag/{{antrag_id}}/child-nodes
+Content-Type: application/json
+
+{
+  "id": "{{disability_insurance_id}}",
+  "childNodes": [
+      {
+      "id": "e74d3be5-36e2-4862-96d1-419c5566f46e",
+      "childNodes": [],
+      "dtype": "disability_insurance_answer",
+      "requiredDocumentUpload": null,
+      "optionalDocumentUpload": null,
+      "requestDate": null,
+      "receiveDate": "2021-06-01",
+      "paymentType": "DAILY",
+      "payment": 144
+    }
+  ],
+  "dtype": "disability_insurance",
+  "yesNo": true
+}
+
+### add a disability insurance answer
+POST http://localhost:9999/api/ale_antrag/{{antrag_id}}/{{disability_insurance_id}}/child-nodes
+
+### update child personal data
+PATCH http://localhost:9999/api/ale_antrag/{{antrag_id}}/question
+Content-Type: application/json
+
+{
+  "id": "3924ffdf-4f04-49ac-8ce8-dfc597052dfc",
+  "childNodes": [
+    {
+      "id": "994e98a9-f359-46fb-8e1c-2a491121e88a",
+      "childNodes": [],
+      "requiredDocumentUpload": {
+        "id": "f59ba8f2-97fb-43db-8f0d-7b9270a4ed42",
+        "laterUpload": true
+      },
+      "optionalDocumentUpload": null,
+      "vorname": "Paul",
+      "nachname": null,
+      "ahvNummer": null,
+      "geburtsdatum": null
+    }
+  ],
+  "dtype": "child_personal_data_question",
+  "yesNo": true
+}
+
+### update child personal data
+PATCH http://localhost:9999/api/ale_antrag/{{antrag_id}}/question
+Content-Type: application/json
+
+{
+  "id": "bbac9312-963f-4905-bbce-d7be6e05725f",
+  "childNodes": [
+    {
+      "id": "3bd39781-5097-414d-8866-0c738a265526",
+      "childNodes": [
+        {
+          "id": "3924ffdf-4f04-49ac-8ce8-dfc597052dfc",
+          "childNodes": [
+            {
+              "id": "994e98a9-f359-46fb-8e1c-2a491121e88a",
+              "childNodes": [],
+              "requiredDocumentUpload": {
+                "id": "f59ba8f2-97fb-43db-8f0d-7b9270a4ed42",
+                "laterUpload": false,
+                "ownerUserId": "paul",
+                "attachments": [],
+                "docTypes": [
+                  "BIRTH_CERTIFICATE"
+                ],
+                "maxDocsCount": 3,
+                "required": true
+              },
+              "optionalDocumentUpload": null,
+              "vorname": "Paul",
+              "nachname": null,
+              "ahvNummer": null,
+              "geburtsdatum": null
+            }
+          ],
+          "dtype": "child_personal_data_question",
+          "yesNo": true
+        }
+      ],
+      "name": "Anna"
+    },
+    {}
+  ],
+  "dtype": "child_question",
+  "yesNo": true
+}
