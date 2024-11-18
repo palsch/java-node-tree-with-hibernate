@@ -22,6 +22,7 @@ public class TreeWithNodesApplication {
     }
 
     @Bean
+    @Profile("profiling")
     public PerformanceProfiler performanceProfiler() {
         return new PerformanceProfiler();
     }
