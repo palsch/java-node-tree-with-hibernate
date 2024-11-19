@@ -2,8 +2,6 @@ package com.example.demo.base;
 
 import com.example.demo.base.documents.DocumentType;
 import com.example.demo.base.documents.DocumentUploads;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MappedSuperclass;
@@ -26,7 +24,7 @@ import static com.example.demo.TestData.ownerUserId;
 @MappedSuperclass
 // reset json deserializer to prevent endless loop during deserialization
 //@JsonDeserialize(using = JsonDeserializer.None.class)
-public abstract class AnswerNodeWithDocs extends Node<Node<?>> {
+public abstract class AnswerNodeEntityWithDocs extends NodeEntity<NodeEntity<?>> {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "required_document_upload_id")
@@ -49,9 +47,9 @@ public abstract class AnswerNodeWithDocs extends Node<Node<?>> {
     }
 
     @Override
-    protected String updateNode(Node<?> node) {
+    protected String updateNode(NodeEntity<?> nodeEntity) {
         // update answer
-        updateAnswer(node);
+        updateAnswer(nodeEntity);
 
         // setup of update required and optional document upload
         setupRequiredDocumentUpload();
@@ -93,12 +91,12 @@ public abstract class AnswerNodeWithDocs extends Node<Node<?>> {
     protected abstract int getOptionalDocumentMaxCount();
 
     /**
-     * Update the answer from the given node
+     * Update the answer from the given nodeEntity
      *
-     * @param node the node to update the answer from - must be of the same type
+     * @param nodeEntity the nodeEntity to update the answer from - must be of the same type
      * @return change log
      */
-    protected abstract String updateAnswer(Node<?> node);
+    protected abstract String updateAnswer(NodeEntity<?> nodeEntity);
 
     private void setupRequiredDocumentUpload() {
         log.debug("setupRequiredDocumentUpload for {} - id {}", this.getClass().getSimpleName(), this.getId());

@@ -1,6 +1,7 @@
 package com.example.demo.base;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,6 +13,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
@@ -19,14 +21,19 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.proxy.HibernateProxy;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -35,7 +42,7 @@ import java.util.UUID;
 
 @Slf4j
 @Getter
-@Setter
+//@Setter
 
 @NamedEntityGraph(
         name = "Node.childNodes",
@@ -45,53 +52,70 @@ import java.util.UUID;
         include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "dtype")
 //@JsonDeserialize(using = NodeDeserializer.class)
 
-@Entity
+@Entity(name = "node")
+@Table(indexes = {
+        @Index(name = "idx_node_parent_id", columnList = "parent_id"),
+        @Index(name = "idx_node_dtype", columnList = "dtype")
+})
 @Inheritance(strategy = InheritanceType.JOINED)
 // Change of a class name breaks the code - Solutions could be to set the name manually on each class: @DiscriminatorValue("ALE_ANTRAG")
 @DiscriminatorColumn(name = "dtype", discriminatorType = DiscriminatorType.STRING)  // This tells Hibernate to create the dtype column
-public abstract class Node<TChildNode extends Node<?>> {
+@DiscriminatorValue("node") // This tells Hibernate to set the value of the dtype column to "node" for this class
+public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(insertable = false, updatable = false)
+    private String dtype;
+
     // Reference to the parent node, if applicable
     @Getter(AccessLevel.NONE)
+
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id") // Foreign key to the parent node
-    private Node<?> parent;
+    protected NodeEntity<?> parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true, targetEntity = Node.class)
-    @BatchSize(size = 16) // optimize the batch size for the child nodes -> reduce the number of queries
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = NodeEntity.class)
+    @BatchSize(size = 10) // optimize the batch size for the child nodes -> reduce the number of queries
+    @Fetch(FetchMode.SUBSELECT)
+//    @OrderBy
     private List<TChildNode> childNodes = new ArrayList<>();
 
-    @Column(insertable = false, updatable = false)
-    private String dtype;
+    @JsonIgnore
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @JsonIgnore
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
     @JsonIgnore
     @Transient
     private boolean deserialized = false;
 
-    public Node() {
+    public NodeEntity() {
         updateTypeFromDiscriminator();
     }
 
     private void updateTypeFromDiscriminator() {
         DiscriminatorValue discriminatorValue = this.getClass().getAnnotation(DiscriminatorValue.class);
         if (discriminatorValue != null) {
-            this.setDtype(discriminatorValue.value());
+            this.dtype = discriminatorValue.value();
         } else {
             throw new IllegalArgumentException("DiscriminatorValue annotation is missing");
         }
     }
 
     /**
-     * Update the node itself with the given node data (not the child nodes)
+     * Update the nodeEntity itself with the given nodeEntity data (not the child nodes)
      *
-     * @param node the node to update
+     * @param nodeEntity the nodeEntity to update
      * @return a change log
      */
-    protected abstract String updateNode(Node<?> node);
+    protected abstract String updateNode(NodeEntity<?> nodeEntity);
 
     /**
      * Create a new child node.
@@ -142,9 +166,9 @@ public abstract class Node<TChildNode extends Node<?>> {
         return false;
     }
 
-    public String update(Node<?> node) {
-        log.info(this.updateNode(node));
-        return updateChildNodes(node);
+    public String update(NodeEntity<?> nodeEntity) {
+        log.info(this.updateNode(nodeEntity));
+        return updateChildNodes(nodeEntity);
     }
 
     /**
@@ -152,10 +176,10 @@ public abstract class Node<TChildNode extends Node<?>> {
      * <p>
      * It won't add or remove child nodes
      *
-     * @param updateNode
+     * @param updateNodeEntity
      */
-    public String updateChildNodes(Node<?> updateNode) {
-        List<TChildNode> newChildNodes = (List<TChildNode>) updateNode.getChildNodes();
+    public String updateChildNodes(NodeEntity<?> updateNodeEntity) {
+        List<TChildNode> newChildNodes = (List<TChildNode>) updateNodeEntity.getChildNodes();
         List<TChildNode> existingChildNodes = this.getChildNodes();
 
         // update existing child nodes
@@ -170,24 +194,24 @@ public abstract class Node<TChildNode extends Node<?>> {
     }
 
     /**
-     * Find a node by id recursively
+     * Find a nodeEntity by id recursively
      *
-     * @param node
-     * @return the node if found, otherwise empty Optional
+     * @param nodeEntity
+     * @return the nodeEntity if found, otherwise empty Optional
      */
-    public Optional<Node<?>> findNode(Node<?> node) {
-        // find the node by id recursively
-        if (node == null || node.getId() == null) {
+    public Optional<NodeEntity<?>> findNode(NodeEntity<?> nodeEntity) {
+        // find the nodeEntity by id recursively
+        if (nodeEntity == null || nodeEntity.getId() == null) {
             return Optional.empty();
         }
 
-        return findNodeById(node.getId());
+        return findNodeById(nodeEntity.getId());
     }
 
     /**
      * Find a node by id recursively
      */
-    public Optional<Node<?>> findNodeById(UUID id) {
+    public Optional<NodeEntity<?>> findNodeById(UUID id) {
         if (id == null) {
             return Optional.empty();
         }
@@ -198,8 +222,8 @@ public abstract class Node<TChildNode extends Node<?>> {
         }
 
         // find the node in the child nodes
-        for (Node<?> childNode : childNodes) {
-            Optional<Node<?>> foundNode = childNode.findNodeById(id);
+        for (NodeEntity<?> childNodeEntity : childNodes) {
+            Optional<NodeEntity<?>> foundNode = childNodeEntity.findNodeById(id);
             if (foundNode.isPresent()) {
                 return foundNode;
             }
@@ -209,7 +233,7 @@ public abstract class Node<TChildNode extends Node<?>> {
     }
 
     public void addNode(TChildNode node) {
-        node.setParent(this);
+        node.parent = this;
         childNodes.add(node);
         node.initializeNode();
     }
@@ -248,23 +272,23 @@ public abstract class Node<TChildNode extends Node<?>> {
         return false;
     }
 
-    public void removeNode(Node<?> node) {
-        // first try to remove from the current node
-        if (childNodes.contains(node)) {
+    public void removeNode(NodeEntity<?> nodeEntity) {
+        // first try to remove from the current nodeEntity
+        if (childNodes.contains(nodeEntity)) {
             assertRemoveChildNodesIsAllowed();
 
             if (childNodes.size() == 1) {
                 assertRemoveLastChildNodeIsAllowed();
             }
 
-            node.setParent(null);
-            childNodes.remove(node);
+            nodeEntity.parent = null;
+            childNodes.remove(nodeEntity);
             return;
         }
 
         // if not found, try to remove from the child nodes
         for (TChildNode childNode : childNodes) {
-            childNode.removeNode(node);
+            childNode.removeNode(nodeEntity);
         }
     }
 
@@ -273,7 +297,7 @@ public abstract class Node<TChildNode extends Node<?>> {
         assertRemoveLastChildNodeIsAllowed();
 
         for (TChildNode node : childNodes) {
-            node.setParent(null);
+            node.parent = null;
         }
         childNodes.clear();
     }
@@ -297,8 +321,8 @@ public abstract class Node<TChildNode extends Node<?>> {
         Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
-        Node<?> node = (Node<?>) o;
-        return getId() != null && Objects.equals(getId(), node.getId());
+        NodeEntity<?> nodeEntity = (NodeEntity<?>) o;
+        return getId() != null && Objects.equals(getId(), nodeEntity.getId());
     }
 
     @Override

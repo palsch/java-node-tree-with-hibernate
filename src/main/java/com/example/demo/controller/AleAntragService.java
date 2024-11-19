@@ -1,23 +1,13 @@
 package com.example.demo.controller;
 
 import com.example.demo.AleAntrag;
-import com.example.demo.base.Node;
+import com.example.demo.base.NodeEntity;
 import com.example.demo.controller.dto.AleAntragMetadataDto;
 import com.example.demo.repository.AleAntragRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -43,7 +33,7 @@ public class AleAntragService {
     // Transactional is required to avoid LazyInitializationException
     @Transactional(readOnly = true)
     public Optional<AleAntrag> getAleAntrag(UUID id) {
-        Optional<Node<?>> byIdWithChildNodes = aleAntragRepository.findByIdWithChildNodes(id);
+        Optional<AleAntrag> byIdWithChildNodes = aleAntragRepository.findById(id);
         if(byIdWithChildNodes.isPresent()) {
             AleAntrag aleAntrag = (AleAntrag) byIdWithChildNodes.get();
             return Optional.of(aleAntrag);
@@ -59,22 +49,22 @@ public class AleAntragService {
 
     // add a new node
     @Transactional
-    public Node<?> addAleAntragNode(UUID antragId, UUID parentId) {
+    public NodeEntity<?> addAleAntragNode(UUID antragId, UUID parentId) {
         AleAntrag aleAntrag = aleAntragRepository.findById(antragId).orElseThrow();
-        Node<?> question = aleAntrag.findNodeById(parentId).orElseThrow();
-        Node<?> newChildNode = question.addNewChildNode().orElseThrow();
+        NodeEntity<?> question = aleAntrag.findNodeById(parentId).orElseThrow();
+        NodeEntity<?> newChildNodeEntity = question.addNewChildNode().orElseThrow();
         aleAntragRepository.saveAndFlush(aleAntrag);
-        return newChildNode;
+        return newChildNodeEntity;
     }
 
     // update any node from the antrag
     @Transactional
-    public Node<?> updateChildNode(UUID antragId, Node<?> updateNode) {
+    public NodeEntity<?> updateChildNode(UUID antragId, NodeEntity<?> updateNodeEntity) {
         AleAntrag aleAntrag = aleAntragRepository.findById(antragId).orElseThrow();
-        Node<?> nodeToUpdate = aleAntrag.findNode(updateNode).orElseThrow();
-        nodeToUpdate.update(updateNode);
+        NodeEntity<?> nodeEntityToUpdate = aleAntrag.findNode(updateNodeEntity).orElseThrow();
+        nodeEntityToUpdate.update(updateNodeEntity);
         aleAntragRepository.save(aleAntrag);
-        return nodeToUpdate;
+        return nodeEntityToUpdate;
     }
 
     // delete any node by id from the antrag

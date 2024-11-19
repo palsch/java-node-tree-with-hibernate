@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 
 @MappedSuperclass
-public abstract class YesNoQuestion<TAnswer extends Node<?>> extends Question<TAnswer> {
+public abstract class YesNoQuestion<TAnswer extends NodeEntity<?>> extends Question<TAnswer> {
 
     private Boolean yesNo;
 

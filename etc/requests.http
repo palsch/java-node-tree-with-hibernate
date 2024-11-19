@@ -10,7 +10,7 @@ GET http://localhost:9999/api/ale_antrag/{{antrag_id}}
 Content-Type: application/json
 
 ### get empty antrag
-GET http://localhost:9999/api/ale_antrag/484963958 nanoseconds spent executing 2 JDBC statements
+GET http://localhost:9999/api/ale_antrag/aa8230ae-0854-42a3-a6c2-1fb991f8c33c
 Content-Type: application/json
 
 ###
@@ -75,20 +75,9 @@ Content-Type: application/json
 
 {
   "id": "{{disability_insurance_id}}",
-  "childNodes": [],
-  "dtype": "disability_insurance",
-  "yesNo": true
-}
-
-### update disability_insurance
-PATCH http://localhost:9999/api/ale_antrag/{{antrag_id}}/child-nodes
-Content-Type: application/json
-
-{
-  "id": "{{disability_insurance_id}}",
   "childNodes": [
       {
-      "id": "e74d3be5-36e2-4862-96d1-419c5566f46e",
+      "id": "5f0b5cde-4bd7-49f2-8481-9cc09f061053",
       "childNodes": [],
       "dtype": "disability_insurance_answer",
       "requiredDocumentUpload": null,

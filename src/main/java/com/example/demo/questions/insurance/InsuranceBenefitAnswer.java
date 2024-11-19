@@ -1,16 +1,13 @@
 package com.example.demo.questions.insurance;
 
-import com.example.demo.base.AnswerNodeWithDocs;
-import com.example.demo.base.Node;
+import com.example.demo.base.AnswerNodeEntityWithDocs;
+import com.example.demo.base.NodeEntity;
 import com.example.demo.base.documents.DocumentType;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Transient;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -20,7 +17,7 @@ import java.util.List;
 @Getter
 @Setter
 @MappedSuperclass
-public abstract class InsuranceBenefitAnswer extends AnswerNodeWithDocs {
+public abstract class InsuranceBenefitAnswer extends AnswerNodeEntityWithDocs {
 
     private LocalDate requestDate;
     private LocalDate receiveDate;
@@ -69,9 +66,9 @@ public abstract class InsuranceBenefitAnswer extends AnswerNodeWithDocs {
     }
 
     @Override
-    protected String updateAnswer(Node<?> node) {
-        assertAnswerType(node);
-        InsuranceBenefitAnswer answer = (InsuranceBenefitAnswer) node;
+    protected String updateAnswer(NodeEntity<?> nodeEntity) {
+        assertAnswerType(nodeEntity);
+        InsuranceBenefitAnswer answer = (InsuranceBenefitAnswer) nodeEntity;
 
         // update the answer
         setRequestDate(answer.getRequestDate());
@@ -82,9 +79,9 @@ public abstract class InsuranceBenefitAnswer extends AnswerNodeWithDocs {
         return "answer updated";
     }
 
-    private void assertAnswerType(Node<?> node) {
-        if (!(node instanceof InsuranceBenefitAnswer)) {
-            throw new IllegalArgumentException("Node must be of type InsuranceBenefitAnswer");
+    private void assertAnswerType(NodeEntity<?> nodeEntity) {
+        if (!(nodeEntity instanceof InsuranceBenefitAnswer)) {
+            throw new IllegalArgumentException("NodeEntity must be of type InsuranceBenefitAnswer");
         }
     }
 

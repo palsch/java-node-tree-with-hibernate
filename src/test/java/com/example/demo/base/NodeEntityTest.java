@@ -14,21 +14,21 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-class NodeTest {
+class NodeEntityTest {
 
-    private NodeImpl node;
-    private NodeImpl childNode;
+    private NodeEntityImpl node;
+    private NodeEntityImpl childNode;
 
     @BeforeEach
     void setUp() {
-        node = new NodeImpl();
-        childNode = new NodeImpl();
+        node = new NodeEntityImpl();
+        childNode = new NodeEntityImpl();
     }
 
     @Test
     void testAddNewChildNode() {
         // Use case: Add a new child node
-        Optional<NodeImpl> newChildNode = node.addNewChildNode();
+        Optional<NodeEntityImpl> newChildNode = node.addNewChildNode();
         assertTrue(newChildNode.isPresent());
         assertEquals(1, node.getChildNodes().size());
     }
@@ -54,7 +54,7 @@ class NodeTest {
         // Use case: Find a node by ID
         node.addNode(childNode);
         UUID childId = childNode.getId();
-        Optional<Node<?>> foundNode = node.findNodeById(childId);
+        Optional<NodeEntity<?>> foundNode = node.findNodeById(childId);
         assertTrue(foundNode.isPresent());
         assertEquals(childNode, foundNode.get());
     }
@@ -63,7 +63,7 @@ class NodeTest {
     void testFindNodeById_NotFound() {
         // Use case: Attempt to find a non-existent node by ID
         UUID nonExistentId = UUID.randomUUID();
-        Optional<Node<?>> foundNode = node.findNodeById(nonExistentId);
+        Optional<NodeEntity<?>> foundNode = node.findNodeById(nonExistentId);
         assertFalse(foundNode.isPresent());
     }
 
@@ -97,23 +97,23 @@ class NodeTest {
         assertEquals(expected, node.isRemoveChildNodesAllowed());
     }
 
-    // Mock implementation of Node for testing purposes
+    // Mock implementation of NodeEntity for testing purposes
     @DiscriminatorValue("node")
-    static class NodeImpl extends Node<NodeImpl> {
+    static class NodeEntityImpl extends NodeEntity<NodeEntityImpl> {
 
-        public NodeImpl() {
+        public NodeEntityImpl() {
             super();
             setId(UUID.randomUUID());
         }
 
         @Override
-        protected String updateNode(Node<?> node) {
-            return "Node updated";
+        protected String updateNode(NodeEntity<?> nodeEntity) {
+            return "NodeEntity updated";
         }
 
         @Override
-        public Optional<NodeImpl> createNewChildNode() {
-            return Optional.of(new NodeImpl());
+        public Optional<NodeEntityImpl> createNewChildNode() {
+            return Optional.of(new NodeEntityImpl());
         }
 
         private boolean removeLastChildNodeAllowed = true;

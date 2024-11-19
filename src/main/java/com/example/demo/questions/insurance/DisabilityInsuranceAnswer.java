@@ -1,6 +1,6 @@
 package com.example.demo.questions.insurance;
 
-import com.example.demo.base.Node;
+import com.example.demo.base.NodeEntity;
 import com.example.demo.base.documents.DocumentType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -22,7 +22,7 @@ import java.util.Optional;
 public class DisabilityInsuranceAnswer extends InsuranceBenefitAnswer {
 
     @Override
-    public Optional<Node<?>> createNewChildNode() {
+    public Optional<NodeEntity<?>> createNewChildNode() {
         return Optional.empty();
     }
 

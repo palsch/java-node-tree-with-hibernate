@@ -1,6 +1,6 @@
 package com.example.demo;
 
-import com.example.demo.base.Node;
+import com.example.demo.base.NodeEntity;
 import com.example.demo.base.Question;
 import com.example.demo.questions.ChildQuestion;
 import com.example.demo.questions.IbanQuestion;
@@ -61,7 +61,7 @@ public class AleAntragIntegrationTest {
                     result.getResponse().setCharacterEncoding("UTF-8");
                     String contentAsString = result.getResponse().getContentAsString();
                     System.out.println(contentAsString);
-                    AleAntrag returnedAntrag = (AleAntrag) objectMapper.readValue(contentAsString, Node.class);
+                    AleAntrag returnedAntrag = (AleAntrag) objectMapper.readValue(contentAsString, NodeEntity.class);
 
                     assertThat(returnedAntrag.getMetadaten().getOwnerUserId()).isEqualTo(TestData.ownerUserId);
                     assertThat(returnedAntrag.getMetadaten().getStatus()).isEqualTo("DRAFT");

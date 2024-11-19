@@ -1,7 +1,7 @@
 package com.example.demo.questions;
 
-import com.example.demo.base.AnswerNodeWithDocs;
-import com.example.demo.base.Node;
+import com.example.demo.base.AnswerNodeEntityWithDocs;
+import com.example.demo.base.NodeEntity;
 import com.example.demo.base.documents.DocumentType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -23,7 +23,7 @@ import java.util.Optional;
 
 @Entity
 @DiscriminatorValue("work_ability_answer")
-public class WorkAbilityAnswer extends AnswerNodeWithDocs {
+public class WorkAbilityAnswer extends AnswerNodeEntityWithDocs {
     private Integer workAbilityPercent;
 
     @Transient
@@ -51,23 +51,23 @@ public class WorkAbilityAnswer extends AnswerNodeWithDocs {
     }
 
     @Override
-    protected String updateAnswer(Node<?> node) {
-        assertIsWorkAbilityAnswer(node);
+    protected String updateAnswer(NodeEntity<?> nodeEntity) {
+        assertIsWorkAbilityAnswer(nodeEntity);
 
-        WorkAbilityAnswer answer = (WorkAbilityAnswer) node;
+        WorkAbilityAnswer answer = (WorkAbilityAnswer) nodeEntity;
         this.setWorkAbilityPercent(answer.getWorkAbilityPercent());
 
         return "";
     }
 
-    private void assertIsWorkAbilityAnswer(Node<?> node) {
-        if (!(node instanceof WorkAbilityAnswer)) {
+    private void assertIsWorkAbilityAnswer(NodeEntity<?> nodeEntity) {
+        if (!(nodeEntity instanceof WorkAbilityAnswer)) {
             throw new IllegalArgumentException("Not a work ability answer");
         }
     }
 
     @Override
-    public Optional<Node<?>> createNewChildNode() {
+    public Optional<NodeEntity<?>> createNewChildNode() {
         return Optional.empty();
     }
 }

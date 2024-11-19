@@ -31,7 +31,9 @@ public class ChildPersonalDataQuestion extends YesNoQuestion<ChildPersonalDataAn
     @Override
     protected void initializeNode() {
         setYesNo(true);
-        addNode(ChildPersonalDataAnswer.builder().build());
+        addNode(ChildPersonalDataAnswer.builder()
+                .vorname("Kind")
+                .build());
     }
 
 }

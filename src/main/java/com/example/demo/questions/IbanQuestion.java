@@ -1,9 +1,7 @@
 package com.example.demo.questions;
 
-import com.example.demo.base.Node;
+import com.example.demo.base.NodeEntity;
 import com.example.demo.base.Question;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.Getter;
@@ -20,12 +18,12 @@ import java.util.Optional;
 
 @Entity
 @DiscriminatorValue("iban_question")
-public class IbanQuestion extends Question<Node<?>> {
+public class IbanQuestion extends Question<NodeEntity<?>> {
 
     private String iban;
 
     @Override
-    protected String updateQuestion(Question<Node<?>> question) {
+    protected String updateQuestion(Question<NodeEntity<?>> question) {
         // update iban
         setIban(((IbanQuestion) question).getIban());
 
@@ -33,7 +31,7 @@ public class IbanQuestion extends Question<Node<?>> {
     }
 
     @Override
-    public Optional<Node<?>> createNewChildNode() {
+    public Optional<NodeEntity<?>> createNewChildNode() {
         return Optional.empty();
     }
 }

@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.AleAntrag;
-import com.example.demo.base.Node;
+import com.example.demo.base.NodeEntity;
 import com.example.demo.controller.dto.AleAntragMetadataDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -56,14 +56,14 @@ public class AleAntragController {
 
     // add a new node
     @PostMapping("/{antragId}/{parentId}/child-nodes")
-    public ResponseEntity<Node<?>> addAleAntragNode(@PathVariable UUID antragId, @PathVariable UUID parentId) {
+    public ResponseEntity<NodeEntity<?>> addAleAntragNode(@PathVariable UUID antragId, @PathVariable UUID parentId) {
         return ResponseEntity.ok(aleAntragService.addAleAntragNode(antragId, parentId));
     }
 
     // update any node from the antrag
     @PatchMapping("/{antragId}/child-nodes")
-    public ResponseEntity<Node<?>> updateChildNode(@PathVariable UUID antragId, @RequestBody Node<?> updateNode) {
-        return ResponseEntity.ok(aleAntragService.updateChildNode(antragId, updateNode));
+    public ResponseEntity<NodeEntity<?>> updateChildNode(@PathVariable UUID antragId, @RequestBody NodeEntity<?> updateNodeEntity) {
+        return ResponseEntity.ok(aleAntragService.updateChildNode(antragId, updateNodeEntity));
     }
 
     // delete any node by id from the antrag

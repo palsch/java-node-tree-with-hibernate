@@ -1,13 +1,11 @@
 package com.example.demo;
 
-import com.example.demo.base.Node;
+import com.example.demo.base.NodeEntity;
 import com.example.demo.base.Question;
 import com.example.demo.questions.ChildQuestion;
 import com.example.demo.questions.IbanQuestion;
 import com.example.demo.questions.WorkAbilityQuestion;
 import com.example.demo.questions.insurance.DisabilityInsuranceQuestion;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -32,19 +30,13 @@ import static com.example.demo.TestData.ownerUserId;
 @DiscriminatorValue("ale_antrag")
 // reset json deserializer to prevent endless loop during deserialization
 //@JsonDeserialize(using = JsonDeserializer.None.class)
-public class AleAntrag extends Node<Question<?>> {
+public class AleAntrag extends NodeEntity<Question<?>> {
 
     @Embedded
     private AleAntragMetadata metadaten;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
-
     @Override
-    protected String updateNode(Node<?> node) {
+    protected String updateNode(NodeEntity<?> nodeEntity) {
         return "";
     }
 

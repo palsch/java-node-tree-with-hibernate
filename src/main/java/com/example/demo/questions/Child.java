@@ -1,6 +1,6 @@
 package com.example.demo.questions;
 
-import com.example.demo.base.Node;
+import com.example.demo.base.NodeEntity;
 import com.example.demo.base.Question;
 import com.example.demo.questions.children.ChildPersonalDataQuestion;
 import jakarta.persistence.DiscriminatorValue;
@@ -17,17 +17,10 @@ import java.util.Optional;
 @Setter
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
 
 @Entity
 @DiscriminatorValue("child")
-public class Child extends Node<Question<?>> {
-
-    /**
-     * Name of the child
-     * TODO: how to set vorname here and in personal data???
-     */
-    private String name;
+public class Child extends NodeEntity<Question<?>> {
 
     protected void initializeNode() {
         if (getId() != null) {
@@ -39,14 +32,9 @@ public class Child extends Node<Question<?>> {
     }
 
     @Override
-    public String updateNode(Node<?> node) {
-        // assert that node is a child
-        assertIsAChild(node);
-
-        Child child = (Child) node;
-
-        // update the name
-        this.setName(child.getName());
+    public String updateNode(NodeEntity<?> nodeEntity) {
+        // assert that nodeEntity is a child
+        assertIsAChild(nodeEntity);
 
         return "child updated";
     }
@@ -59,8 +47,8 @@ public class Child extends Node<Question<?>> {
         return Optional.empty();
     }
 
-    private void assertIsAChild(Node<?> node) {
-        if (!(node instanceof Child)) {
+    private void assertIsAChild(NodeEntity<?> nodeEntity) {
+        if (!(nodeEntity instanceof Child)) {
             throw new IllegalArgumentException("Not a child");
         }
     }

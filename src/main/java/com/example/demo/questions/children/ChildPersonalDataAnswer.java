@@ -1,7 +1,7 @@
 package com.example.demo.questions.children;
 
-import com.example.demo.base.AnswerNodeWithDocs;
-import com.example.demo.base.Node;
+import com.example.demo.base.AnswerNodeEntityWithDocs;
+import com.example.demo.base.NodeEntity;
 import com.example.demo.base.documents.DocumentType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -24,7 +24,7 @@ import java.util.Optional;
 
 @Entity
 @DiscriminatorValue("child_personal_data_answer")
-public class ChildPersonalDataAnswer extends AnswerNodeWithDocs {
+public class ChildPersonalDataAnswer extends AnswerNodeEntityWithDocs {
 
     private String vorname;
     private String nachname;
@@ -56,10 +56,10 @@ public class ChildPersonalDataAnswer extends AnswerNodeWithDocs {
     }
 
     @Override
-    protected String updateAnswer(Node<?> node) {
-        assertIsChildPersonalDataAnswer(node);
+    protected String updateAnswer(NodeEntity<?> nodeEntity) {
+        assertIsChildPersonalDataAnswer(nodeEntity);
 
-        ChildPersonalDataAnswer answer = (ChildPersonalDataAnswer) node;
+        ChildPersonalDataAnswer answer = (ChildPersonalDataAnswer) nodeEntity;
 
         setVorname(answer.getVorname());
         setNachname(answer.getNachname());
@@ -69,14 +69,14 @@ public class ChildPersonalDataAnswer extends AnswerNodeWithDocs {
         return "updated child personal data answer";
     }
 
-    private void assertIsChildPersonalDataAnswer(Node<?> node) {
-        if (!(node instanceof ChildPersonalDataAnswer)) {
+    private void assertIsChildPersonalDataAnswer(NodeEntity<?> nodeEntity) {
+        if (!(nodeEntity instanceof ChildPersonalDataAnswer)) {
             throw new IllegalArgumentException("Answer must be of type ChildPersonalDataAnswer");
         }
     }
 
     @Override
-    public Optional<Node<?>> createNewChildNode() {
+    public Optional<NodeEntity<?>> createNewChildNode() {
         return Optional.empty();
     }
 }

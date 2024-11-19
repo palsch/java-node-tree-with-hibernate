@@ -1,7 +1,5 @@
 package com.example.demo.base;
 
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,12 +11,12 @@ import lombok.Setter;
 
 // reset json deserializer to prevent endless loop during deserialization
 //@JsonDeserialize(using = JsonDeserializer.None.class)
-public abstract class Question<T extends Node<?>> extends Node<T> {
+public abstract class Question<T extends NodeEntity<?>> extends NodeEntity<T> {
 
     @Override
-    protected String updateNode(Node<?> node) {
-        assertIsAQuestion(node);
-        Question<T> question = (Question<T>) node;
+    protected String updateNode(NodeEntity<?> nodeEntity) {
+        assertIsAQuestion(nodeEntity);
+        Question<T> question = (Question<T>) nodeEntity;
 
         // update the question
         return updateQuestion(question);
@@ -26,7 +24,7 @@ public abstract class Question<T extends Node<?>> extends Node<T> {
 
     protected abstract String updateQuestion(Question<T> question);
 
-    private void assertIsAQuestion(Node<?> question) {
+    private void assertIsAQuestion(NodeEntity<?> question) {
         if (!(question instanceof Question<?>)) {
             throw new IllegalArgumentException("Not a question");
         }
