@@ -1,0 +1,14 @@
+<a mat-button [routerLink]=""  (click)="createAntrag()">Create</a>
+<p>
+  @for (overviewItem of overview$ | async; track overviewItem.antragId) {
+
+    <app-my-overview-item [overviewItem]="overviewItem" [routerLink]="['antrag/', overviewItem.antragId]" ></app-my-overview-item>
+  }
+</p>
+<mat-chip-set aria-label="Performance Data">
+  <mat-chip>Get Antrag: {{backendService.get_antrag_time}} ms</mat-chip>
+  <mat-chip>Update Node: {{backendService.update_node_time}} ms</mat-chip>
+</mat-chip-set>
+
+
+<router-outlet></router-outlet>

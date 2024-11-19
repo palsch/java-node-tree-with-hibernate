@@ -1,0 +1,5 @@
+<p>Antrag: {{ overviewItem().antragId }} - {{ overviewItem().status }}
+  <br/>
+  <a mat-button [routerLink]=""  (click)="openAntrag.emit(overviewItem())">Open</a>
+</p>
+

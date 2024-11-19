@@ -1,0 +1,5 @@
+
+@if (antrag$ | async; as antrag) {
+  <h4>Antrag</h4>
+  <app-my-node-entity [nodeEntity]="antrag" [level]="0" [antragId]="antrag.id"></app-my-node-entity>
+}
