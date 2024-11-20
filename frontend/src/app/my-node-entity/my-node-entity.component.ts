@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { NodeEntity } from '../node.types';
 import { MatAnchor } from '@angular/material/button';
 import { JsonPipe, NgClass } from '@angular/common';
-import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
 import { MatFormField, MatFormFieldModule, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatInput, MatInputModule } from '@angular/material/input';
 import { MyDocumentUploadComponent } from '../my-document-upload/my-document-upload.component';
@@ -25,6 +24,7 @@ import { default as _rollupMoment } from 'moment';
 import { MatSelect } from '@angular/material/select';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { MatIconModule } from '@angular/material/icon';
+import { MatExpansionPanel, MatExpansionPanelDescription, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
 
 const moment = _rollupMoment || _moment;
 
@@ -35,11 +35,6 @@ const moment = _rollupMoment || _moment;
     FormsModule,
     MatAnchor,
     JsonPipe,
-    MatCard,
-    MatCardContent,
-    MatCardHeader,
-    MatCardActions,
-    MatCardTitle,
     MatFormField,
     MatLabel,
     MatInput,
@@ -50,7 +45,7 @@ const moment = _rollupMoment || _moment;
     MatDatepickerToggle,
     MatDatepicker,
     MatHint,
-    MatFormFieldModule, MatInputModule, MatDatepickerModule, MatOption, MatSelect, NgClass, MatIconModule
+    MatFormFieldModule, MatInputModule, MatDatepickerModule, MatOption, MatSelect, NgClass, MatIconModule, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, MatExpansionPanelDescription
   ],
   templateUrl: './my-node-entity.component.html',
   styleUrl: './my-node-entity.component.scss'
@@ -91,7 +86,10 @@ export class MyNodeEntityComponent {
   }
 
   private _clipboard = inject(Clipboard);
-  copyId() {
+
+  copyId(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
     this._clipboard.copy(this.nodeEntity().id);
   }
 
@@ -123,7 +121,9 @@ export class MyNodeEntityComponent {
       .subscribe();
   }
 
-  removeNodeClick(): void {
+  removeNodeClick(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
     console.log('Remove node', this.nodeEntityToRender);
     this.removeNode.emit(this.nodeEntityToRender());
   }

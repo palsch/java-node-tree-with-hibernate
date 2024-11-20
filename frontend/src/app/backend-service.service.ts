@@ -12,6 +12,8 @@ export class BackendServiceService {
 
   public get_antrag_time = 0;
   public update_node_time = 0;
+  public add_node_time = 0;
+  public delete_node_time = 0;
 
   constructor(public httpClient: HttpClient) {
   }
@@ -22,6 +24,10 @@ export class BackendServiceService {
 
   public createAleAntrag(): Observable<NodeEntity> {
     return this.httpClient.post<NodeEntity>(this.aleAntragUrl, {})
+  }
+
+  public removeAleAntrag(antragId: string): Observable<NodeEntity> {
+    return this.httpClient.delete<NodeEntity>(`${this.aleAntragUrl}/${antragId}`);
   }
 
   public getAleAntrag(id: string): Observable<NodeEntity> {
@@ -35,14 +41,22 @@ export class BackendServiceService {
   //### add a child
   // POST http://localhost:9999/api/ale_antrag/{{antrag_id}}/{{child_question_id}}/child-nodes
   public addNode(antragId: string, childQuestionId: string): Observable<NodeEntity> {
-    return this.httpClient.post<NodeEntity>(`${this.aleAntragUrl}/${antragId}/${childQuestionId}/child-nodes`, {});
+    const start = Date.now();
+    return this.httpClient.post<NodeEntity>(`${this.aleAntragUrl}/${antragId}/${childQuestionId}/child-nodes`, {})
+      .pipe(
+        tap(() => this.add_node_time = Date.now() - start)
+      );
   }
 
 
   // ### remove a child
   // DELETE http://localhost:9999/api/ale_antrag/{{antrag_id}}/child-nodes/8e0a1fa0-ab9a-48f9-b60a-e1bda87e9b2a
   public removeNode(antragId: string, nodeId: string): Observable<NodeEntity> {
-    return this.httpClient.delete<NodeEntity>(`${this.aleAntragUrl}/${antragId}/child-nodes/${nodeId}`);
+    const start = Date.now();
+    return this.httpClient.delete<NodeEntity>(`${this.aleAntragUrl}/${antragId}/child-nodes/${nodeId}`)
+      .pipe(
+        tap(() => this.delete_node_time = Date.now() - start)
+      );
   }
 
 

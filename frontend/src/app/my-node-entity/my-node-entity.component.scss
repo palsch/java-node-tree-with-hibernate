@@ -12,8 +12,12 @@
   width: 100%;
 }
 
+::ng-deep .fix-mat-panel > .mat-content {
+  margin-right: 0 !important;
+}
+
 .title_with_icon {
-  margin-bottom: 1rem;
+  margin-right: 0;
 }
 
 .card {

@@ -3,7 +3,7 @@
     <div class="scrollable-content">
       <div class="content">
         <mat-grid-tile-header><h4>Overview</h4></mat-grid-tile-header>
-        <a class="mb-1" mat-flat-button [routerLink]="" (click)="createAntrag()">Create new Antrag</a>
+        <a class="mb-1" mat-flat-button [routerLink]="" (click)="createAntrag()">New Antrag</a>
         @for (overviewItem of overview$ | async; track overviewItem.antragId) {
           <app-my-overview-item [overviewItem]="overviewItem" [routerLink]="['antrag/', overviewItem.antragId]"></app-my-overview-item>
         }

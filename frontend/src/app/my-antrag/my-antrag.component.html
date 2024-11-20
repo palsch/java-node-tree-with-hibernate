@@ -3,7 +3,11 @@
   <mat-chip-set aria-label="Performance Data">
     <mat-chip>Get Antrag: {{ backendService.get_antrag_time }} ms</mat-chip>
     <mat-chip>Update Node: {{ backendService.update_node_time }} ms</mat-chip>
+    <mat-chip>Add Node: {{ backendService.add_node_time }} ms</mat-chip>
+    <mat-chip>Delete Node: {{ backendService.delete_node_time }} ms</mat-chip>
   </mat-chip-set>
-
-  <app-my-node-entity [nodeEntity]="antrag" [level]="0" [antragId]="antrag.id"></app-my-node-entity>
+  <div class="mb-1"></div>
+  <mat-accordion>
+      <app-my-node-entity [nodeEntity]="antrag" [level]="0" [antragId]="antrag.id" (removeNode)="removeAntrag($event)"></app-my-node-entity>
+  </mat-accordion>
 }

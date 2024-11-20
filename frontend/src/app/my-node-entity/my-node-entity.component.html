@@ -1,81 +1,83 @@
-<mat-card class="card" appearance="outlined" [ngClass]="'level-' + level()">
-  <mat-card-header>
-    <mat-card-title>
-      <div  class="title_with_icon">
+<mat-expansion-panel hideToggle class="mb-1" [ngClass]="'level-' + level()">
+  <mat-expansion-panel-header class="fix-mat-panel">
+    <mat-panel-title>
       {{ nodeEntity().dtype }}
-      <mat-icon class="clickable" aria-hidden="false" aria-label="Copy ID" fontIcon="content_copy" (click)="copyId()"></mat-icon>
-      </div>
-    </mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
-    <div class="example-form">
-      @for (attribute of attributes(); track attribute) {
-        @switch (attribute.type) {
-          @case ('boolean') {
-            <mat-checkbox class="example-margin" [checked]="attribute.value" [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">{{ attribute.name }}</mat-checkbox>
-          }
-          @case ('string') {
-            @switch (attribute.name) {
-              @case ('paymentType') {
-                <mat-form-field>
-                  <mat-label>{{attribute.name}}</mat-label>
-                  <mat-select [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">
-                    @for (type of paymentType; track type) {
-                      <mat-option [value]="type">{{ type }}</mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
+    </mat-panel-title>
+    <mat-panel-description class="title_with_icon">
+      <div></div>
+      <div>
+        <mat-icon class="clickable" aria-hidden="false" aria-label="Copy ID" fontIcon="content_copy" (click)="copyId($event)"></mat-icon>
 
-              }
-              @default {
-                <mat-form-field class="example-full-width">
-                  <mat-label>{{ attribute.name }}</mat-label>
-                  <input matInput placeholder="{{ attribute.name }}" value="{{ attribute.value }}" [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">
-                </mat-form-field>
-              }
+        @if (['disability_insurance_answer', 'child', 'ale_antrag'].includes(nodeEntity().dtype)) {
+          <mat-icon class="clickable" aria-hidden="false" aria-label="Copy ID" fontIcon="delete" (click)="removeNodeClick($event)"></mat-icon>
+        }
+      </div>
+    </mat-panel-description>
+  </mat-expansion-panel-header>
+  <div class="example-form">
+    @for (attribute of attributes(); track attribute) {
+      @switch (attribute.type) {
+        @case ('boolean') {
+          <mat-checkbox class="example-margin" [checked]="attribute.value" [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">{{ attribute.name }}</mat-checkbox>
+        }
+        @case ('string') {
+          @switch (attribute.name) {
+            @case ('paymentType') {
+              <mat-form-field>
+                <mat-label>{{ attribute.name }}</mat-label>
+                <mat-select [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">
+                  @for (type of paymentType; track type) {
+                    <mat-option [value]="type">{{ type }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+            }
+            @default {
+              <mat-form-field class="example-full-width">
+                <mat-label>{{ attribute.name }}</mat-label>
+                <input matInput placeholder="{{ attribute.name }}" value="{{ attribute.value }}" [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">
+              </mat-form-field>
             }
           }
-          @case ('number') {
-            <mat-form-field class="example-full-width">
-              <mat-label>{{ attribute.name }}</mat-label>
-              <input matInput placeholder="{{ attribute.name }}" value="{{ attribute.value }}" [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">
-            </mat-form-field>
-          }
-          @case ('date') {
-            <mat-form-field class="example-full-width">
-              <mat-label>Choose a date</mat-label>
-              <input matInput [matDatepicker]="picker" [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">
-              <mat-hint>YYYY-MM-DD</mat-hint>
-              <mat-datepicker-toggle matIconSuffix [for]="picker">test</mat-datepicker-toggle>
-              <mat-datepicker #picker></mat-datepicker>
-            </mat-form-field>
-          }
-          @default {
-            {{ attribute.name }}: {{ attribute.value | json }}
-          }
+        }
+        @case ('number') {
+          <mat-form-field class="example-full-width">
+            <mat-label>{{ attribute.name }}</mat-label>
+            <input matInput placeholder="{{ attribute.name }}" value="{{ attribute.value }}" [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">
+          </mat-form-field>
+        }
+        @case ('date') {
+          <mat-form-field class="example-full-width">
+            <mat-label>Choose a date</mat-label>
+            <input matInput [matDatepicker]="picker" [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">
+            <mat-hint>YYYY-MM-DD</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker">test</mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </mat-form-field>
+        }
+        @default {
+          {{ attribute.name }}: {{ attribute.value | json }}
         }
       }
-    </div>
+    }
+  </div>
 
-    @if (nodeEntity().requiredDocumentUpload) {
-      <app-my-document-upload [docUpload]="nodeEntity().requiredDocumentUpload"></app-my-document-upload>
-    }
+  @if (nodeEntity().requiredDocumentUpload) {
+    <app-my-document-upload [docUpload]="nodeEntity().requiredDocumentUpload"></app-my-document-upload>
+  }
 
-    @if (!!nodeEntity().optionalDocumentUpload) {
-      <app-my-document-upload [docUpload]="nodeEntity().optionalDocumentUpload"></app-my-document-upload>
-    }
+  @if (!!nodeEntity().optionalDocumentUpload) {
+    <app-my-document-upload [docUpload]="nodeEntity().optionalDocumentUpload"></app-my-document-upload>
+  }
 
-    @for (child of nodeEntity().childNodes; track child.id) {
-      <app-my-node-entity [nodeEntity]="child" [level]="level() + 1" [antragId]="antragId()" (removeNode)="onRemoveNode($event)"></app-my-node-entity>
-    }
-  </mat-card-content>
-  <mat-card-actions>
-    <a mat-button [routerLink]="" (click)="saveNode()">SAVE</a>
-    @if (['disability_insurance_answer', 'child'].includes(nodeEntity().dtype)) {
-      <a mat-button [routerLink]="" (click)="removeNodeClick()">DELETE</a>
-    }
-    @if (['disability_insurance', 'child_question'].includes(nodeEntity().dtype)) {
-      <a mat-button [routerLink]="" (click)="addNode()">ADD</a>
-    }
-  </mat-card-actions>
-</mat-card>
+  @for (child of nodeEntity().childNodes; track child.id) {
+    <div class="mb-1"></div>
+    <app-my-node-entity [nodeEntity]="child" [level]="level() + 1" [antragId]="antragId()" (removeNode)="onRemoveNode($event)"></app-my-node-entity>
+  }
+
+  @if (['disability_insurance', 'child_question'].includes(nodeEntity().dtype)) {
+    <div class="mb-1"></div>
+    <a mat-button [routerLink]="" (click)="addNode()">ADD</a>
+  }
+</mat-expansion-panel>
