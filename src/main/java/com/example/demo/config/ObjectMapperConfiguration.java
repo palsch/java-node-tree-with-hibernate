@@ -1,4 +1,4 @@
-package com.example.demo.controller.config;
+package com.example.demo.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Map;
 
 @Configuration
-public class Jackson {
+public class ObjectMapperConfiguration {
 
     @Autowired
     private ObjectMapper existingObjectMapper;

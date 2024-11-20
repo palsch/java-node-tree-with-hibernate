@@ -24,7 +24,7 @@ import { default as _rollupMoment } from 'moment';
 import { MatSelect } from '@angular/material/select';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { MatIconModule } from '@angular/material/icon';
-import { MatExpansionPanel, MatExpansionPanelDescription, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
+import { MatExpansionPanel, MatExpansionPanelContent, MatExpansionPanelDescription, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
 
 const moment = _rollupMoment || _moment;
 
@@ -45,7 +45,7 @@ const moment = _rollupMoment || _moment;
     MatDatepickerToggle,
     MatDatepicker,
     MatHint,
-    MatFormFieldModule, MatInputModule, MatDatepickerModule, MatOption, MatSelect, NgClass, MatIconModule, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, MatExpansionPanelDescription
+    MatFormFieldModule, MatInputModule, MatDatepickerModule, MatOption, MatSelect, NgClass, MatIconModule, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, MatExpansionPanelDescription, MatExpansionPanelContent
   ],
   templateUrl: './my-node-entity.component.html',
   styleUrl: './my-node-entity.component.scss'
@@ -62,6 +62,8 @@ export class MyNodeEntityComponent {
   attributes = computed(() => this.attrbutesPipe.transform(this.nodeEntityToRender(), ['requiredDocumentUpload', 'optionalDocumentUpload']));
 
   nodeEntityToRender = signal<NodeEntity | null>(null);
+
+  isOpen = input<boolean>(false);
 
   private modelChangeTimeout: any;
   private _snackBar = inject(MatSnackBar);
@@ -142,11 +144,17 @@ export class MyNodeEntityComponent {
   }
 
   addNode(): void {
-    console.log('Add node', this.nodeEntity);
-    this.backendService.addNode(this.antragId(), this.nodeEntity().id)
+    if (!this.nodeEntityToRender()) {
+      console.error('Add node error: nodeEntityToRender is undefined');
+      return;
+    }
+    console.log('Add node', this.nodeEntityToRender());
+
+    // @ts-ignore
+    this.backendService.addNode(this.antragId(), this.nodeEntityToRender().id)
       .pipe(
         tap(a => console.log('added node', a)),
-        tap(a => this.nodeEntity().childNodes.push(a))
+        tap(a => this.nodeEntityToRender()?.childNodes.push(a))
       )
       .subscribe();
   }

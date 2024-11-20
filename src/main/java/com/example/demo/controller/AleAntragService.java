@@ -4,6 +4,7 @@ import com.example.demo.AleAntrag;
 import com.example.demo.base.NodeEntity;
 import com.example.demo.controller.dto.AleAntragMetadataDto;
 import com.example.demo.repository.AleAntragRepository;
+import com.example.demo.repository.NodeEntityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,10 +21,13 @@ public class AleAntragService {
     @Autowired
     private AleAntragRepository aleAntragRepository;
 
+    @Autowired
+    private NodeEntityRepository nodeEntityRepository;
+
     // Overview
     public Iterable<AleAntragMetadataDto> getAleAntrags() {
         List<AleAntragMetadataDto> antragList = aleAntragRepository.findAllByOwnerUserId(ownerUserId);
-        return antragList.stream().map(aleAntragMetadataDto -> aleAntragMetadataDto.withNodeCount(aleAntragRepository.countChildNodes(aleAntragMetadataDto.antragId()))).toList();
+        return antragList.stream().map(aleAntragMetadataDto -> aleAntragMetadataDto.withNodeCount(nodeEntityRepository.countChildNodes(aleAntragMetadataDto.antragId()))).toList();
     }
 
     // ALE Antrag CRUD
@@ -35,6 +39,8 @@ public class AleAntragService {
     // Transactional is required to avoid LazyInitializationException
     @Transactional(readOnly = true)
     public Optional<AleAntrag> getAleAntrag(UUID id) {
+        assertOwnerUserId(id);
+
         Optional<AleAntrag> byIdWithChildNodes = aleAntragRepository.findById(id);
         if(byIdWithChildNodes.isPresent()) {
             AleAntrag aleAntrag = (AleAntrag) byIdWithChildNodes.get();
@@ -44,6 +50,9 @@ public class AleAntragService {
     }
 
     public void deleteAleAntrag(UUID id) {
+        assertOwnerUserId(id);
+        assertEditable(id);
+
         aleAntragRepository.deleteById(id);
     }
 
@@ -52,16 +61,23 @@ public class AleAntragService {
     // add a new node
     @Transactional
     public NodeEntity<?> addAleAntragNode(UUID antragId, UUID parentId) {
-        AleAntrag aleAntrag = aleAntragRepository.findById(antragId).orElseThrow();
-        NodeEntity<?> question = aleAntrag.findNodeById(parentId).orElseThrow();
-        NodeEntity<?> newChildNodeEntity = question.addNewChildNode().orElseThrow();
-        aleAntragRepository.saveAndFlush(aleAntrag);
+        assertOwnerUserId(antragId);
+        assertEditable(antragId);
+        nodeEntityRepository.updateNodeUpdatedAt(antragId);
+
+        NodeEntity<?> nodeEntity = nodeEntityRepository.findById(parentId).orElseThrow();
+        NodeEntity<?> newChildNodeEntity = nodeEntity.addNewChildNode().orElseThrow();
+        nodeEntityRepository.save(newChildNodeEntity);
         return newChildNodeEntity;
     }
 
     // update any node from the antrag
     @Transactional
     public NodeEntity<?> updateChildNode(UUID antragId, NodeEntity<?> updateNodeEntity) {
+        assertOwnerUserId(antragId);
+        assertEditable(antragId);
+        nodeEntityRepository.updateNodeUpdatedAt(antragId);
+
         AleAntrag aleAntrag = aleAntragRepository.findById(antragId).orElseThrow();
         NodeEntity<?> nodeEntityToUpdate = aleAntrag.findNode(updateNodeEntity).orElseThrow();
         nodeEntityToUpdate.update(updateNodeEntity);
@@ -72,8 +88,26 @@ public class AleAntragService {
     // delete any node by id from the antrag
     @Transactional
     public void deleteChildNode(UUID antragId, UUID childId) {
+        assertOwnerUserId(antragId);
+        assertEditable(antragId);
+        nodeEntityRepository.updateNodeUpdatedAt(antragId);
+
         AleAntrag aleAntrag = aleAntragRepository.findById(antragId).orElseThrow();
         aleAntrag.removeNodeById(childId);
         aleAntragRepository.save(aleAntrag);
+    }
+
+    private void assertOwnerUserId(UUID antragId) {
+        String ownerUserIdByAntragId = aleAntragRepository.getOwnerUserIdByAntragId(antragId);
+        if (!ownerUserIdByAntragId.equals(ownerUserId)) {
+            throw new IllegalArgumentException("OwnerUserId does not match");
+        }
+    }
+
+    private void assertEditable(UUID antragId) {
+        String status = aleAntragRepository.getStatusByAntragId(antragId);
+        if (!status.equals("DRAFT")) {
+            throw new IllegalArgumentException("Is not editable");
+        }
     }
 }

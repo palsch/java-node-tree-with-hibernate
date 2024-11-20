@@ -41,9 +41,6 @@ public class AleAntragController {
     @GetMapping("/{id}")
     public ResponseEntity<AleAntrag> getAleAntrag(@PathVariable UUID id) {
         return aleAntragService.getAleAntrag(id).map(aleAntrag -> ResponseEntity.ok(aleAntrag)).orElse(ResponseEntity.notFound().build());
-
-//        Optional<AleAntrag> aleAntrag = aleAntragRepository.findByIdWithChildNodes(id);
-//        return aleAntrag.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

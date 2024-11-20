@@ -1,4 +1,6 @@
-<mat-card appearance="outlined" class="mb-1 clickable" >
+<mat-card appearance="outlined" class="mb-1 clickable"
+          [routerLink]="['/antrag/' + overviewItem().antragId]" [routerLinkActive]="['is-active']"
+>
   <mat-card-header>
     <mat-card-title>
       <div  class="title_with_icon">

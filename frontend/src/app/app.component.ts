@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { OverviewItem } from './node.types';
+import { NodeEntity, OverviewItem } from './node.types';
 import { AsyncPipe } from '@angular/common';
 import { BackendServiceService } from './backend-service.service';
 import { MyOverviewItemComponent } from './my-overview-item/my-overview-item.component';
@@ -29,7 +29,12 @@ export class AppComponent implements OnInit {
   }
 
   createAntrag(): void {
-    this.backendService.createAleAntrag().subscribe();
+    // create a new antrag and navigate to it
+    this.backendService.createAleAntrag().subscribe(
+      (antrag: NodeEntity) => {
+        window.location.href = '/antrag/' + antrag.id;
+      }
+    );
   }
 
 }

@@ -10,7 +10,14 @@ import java.util.UUID;
 
 public interface AleAntragRepository extends JpaRepository<AleAntrag, UUID> {
 
-    @Query("SELECT new com.example.demo.controller.dto.AleAntragMetadataDto(a.id, a.metadaten.status, a.updatedAt, 0) FROM AleAntrag a WHERE a.metadaten.ownerUserId = :ownerUserId")
+    @Query("SELECT a.metadaten.ownerUserId FROM AleAntrag a WHERE a.id = :id")
+    String getOwnerUserIdByAntragId(UUID id);
+
+    @Query("SELECT a.metadaten.status FROM AleAntrag a WHERE a.id = :id")
+    String getStatusByAntragId(UUID id);
+
+    @Query("SELECT new com.example.demo.controller.dto.AleAntragMetadataDto(a.id, a.metadaten.status, a.updatedAt, 0) FROM AleAntrag a WHERE a.metadaten.ownerUserId = :ownerUserId" +
+            " ORDER BY a.updatedAt DESC")
     List<AleAntragMetadataDto> findAllByOwnerUserId(String ownerUserId);
 
     @Query(value = """

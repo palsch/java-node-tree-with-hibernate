@@ -22,6 +22,7 @@ import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.AccessLevel;
@@ -98,9 +99,10 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     private boolean deserialized = false;
 
     public NodeEntity() {
-        updateTypeFromDiscriminator();
+//        updateTypeFromDiscriminator();
     }
 
+    @PrePersist
     private void updateTypeFromDiscriminator() {
         DiscriminatorValue discriminatorValue = this.getClass().getAnnotation(DiscriminatorValue.class);
         if (discriminatorValue != null) {

@@ -1,4 +1,4 @@
-package com.example.demo.controller.config;
+package com.example.demo.config;
 
 import jakarta.persistence.DiscriminatorValue;
 import lombok.Getter;
@@ -15,7 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * TODO: eigene Annotation: Question, welche den DiscriminatorValue enthält und Serializer None
+ * Scans for classes annotated with {@link DiscriminatorValue} and stores them in a map.
+ * It is used to register all valid node subclasses with ObjectMapperConfiguration.
  */
 public class DiscriminatorValueScanner {
 

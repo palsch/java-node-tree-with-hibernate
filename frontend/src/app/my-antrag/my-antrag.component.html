@@ -8,6 +8,6 @@
   </mat-chip-set>
   <div class="mb-1"></div>
   <mat-accordion>
-      <app-my-node-entity [nodeEntity]="antrag" [level]="0" [antragId]="antrag.id" (removeNode)="removeAntrag($event)"></app-my-node-entity>
+      <app-my-node-entity [nodeEntity]="antrag" [level]="0" [antragId]="antrag.id" (removeNode)="removeAntrag($event)" [isOpen]="true"></app-my-node-entity>
   </mat-accordion>
 }
