@@ -7,3 +7,40 @@
 .example-full-width {
   width: 100%;
 }
+
+::ng-deep .mat-mdc-card-header-text {
+  width: 100%;
+}
+
+.title_with_icon {
+  margin-bottom: 1rem;
+}
+
+.card {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.level-0 {
+  background: white;
+}
+
+.level-1 {
+  background: #f0f0f0;
+}
+
+.level-2 {
+  background: #e0e0e0;
+}
+
+.level-3 {
+  background: #d0d0d0;
+}
+
+.level-4 {
+  background: #c0c0c0;
+}
+
+.level-5 {
+  background: #b0b0b0;
+}

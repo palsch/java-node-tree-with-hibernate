@@ -1,7 +1,11 @@
-<mat-card appearance="outlined">
+<mat-card class="card" appearance="outlined" [ngClass]="'level-' + level()">
   <mat-card-header>
-    <mat-card-title>{{ nodeEntity().dtype }}</mat-card-title>
-    <mat-card-subtitle>{{ nodeEntity().id }}</mat-card-subtitle>
+    <mat-card-title>
+      <div  class="title_with_icon">
+      {{ nodeEntity().dtype }}
+      <mat-icon class="clickable" aria-hidden="false" aria-label="Copy ID" fontIcon="content_copy" (click)="copyId()"></mat-icon>
+      </div>
+    </mat-card-title>
   </mat-card-header>
   <mat-card-content>
     <div class="example-form">
@@ -11,15 +15,30 @@
             <mat-checkbox class="example-margin" [checked]="attribute.value" [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">{{ attribute.name }}</mat-checkbox>
           }
           @case ('string') {
-            <mat-form-field class="example-full-width">
-              <mat-label>{{ attribute.name }}</mat-label>
-              <input matInput placeholder="Ex. Pizza" value="{{ attribute.value }}" [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">
-            </mat-form-field>
+            @switch (attribute.name) {
+              @case ('paymentType') {
+                <mat-form-field>
+                  <mat-label>{{attribute.name}}</mat-label>
+                  <mat-select [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">
+                    @for (type of paymentType; track type) {
+                      <mat-option [value]="type">{{ type }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+              }
+              @default {
+                <mat-form-field class="example-full-width">
+                  <mat-label>{{ attribute.name }}</mat-label>
+                  <input matInput placeholder="{{ attribute.name }}" value="{{ attribute.value }}" [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">
+                </mat-form-field>
+              }
+            }
           }
           @case ('number') {
             <mat-form-field class="example-full-width">
               <mat-label>{{ attribute.name }}</mat-label>
-              <input matInput placeholder="Ex. 42" value="{{ attribute.value }}" [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">
+              <input matInput placeholder="{{ attribute.name }}" value="{{ attribute.value }}" [(ngModel)]="attribute.value" (ngModelChange)="modelChange()">
             </mat-form-field>
           }
           @case ('date') {

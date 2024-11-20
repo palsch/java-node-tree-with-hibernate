@@ -7,4 +7,8 @@ public record AleAntragMetadataDto(UUID antragId,
                                    String status,
                                    LocalDateTime updatedAt,
                                    int nodeCount) {
+
+    public AleAntragMetadataDto withNodeCount(int nodeCount) {
+        return new AleAntragMetadataDto(antragId, status, updatedAt, nodeCount);
+    }
 }

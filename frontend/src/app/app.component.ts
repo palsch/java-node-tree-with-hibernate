@@ -7,11 +7,13 @@ import { BackendServiceService } from './backend-service.service';
 import { MyOverviewItemComponent } from './my-overview-item/my-overview-item.component';
 import { MatAnchor } from '@angular/material/button';
 import { MatChip, MatChipSet } from '@angular/material/chips';
+import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatGridList, MatGridTile, MatGridTileText } from '@angular/material/grid-list';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [AsyncPipe, MyOverviewItemComponent, MatAnchor, RouterLink, RouterOutlet, MatChip, MatChipSet],
+  imports: [AsyncPipe, MyOverviewItemComponent, MatAnchor, RouterLink, RouterOutlet, MatChip, MatChipSet, MatCardContent, MatCard, MatGridTile, MatGridList, MatGridTileText],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

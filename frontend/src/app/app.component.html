@@ -1,14 +1,20 @@
-<a mat-button [routerLink]=""  (click)="createAntrag()">Create</a>
-<p>
-  @for (overviewItem of overview$ | async; track overviewItem.antragId) {
-
-    <app-my-overview-item [overviewItem]="overviewItem" [routerLink]="['antrag/', overviewItem.antragId]" ></app-my-overview-item>
-  }
-</p>
-<mat-chip-set aria-label="Performance Data">
-  <mat-chip>Get Antrag: {{backendService.get_antrag_time}} ms</mat-chip>
-  <mat-chip>Update Node: {{backendService.update_node_time}} ms</mat-chip>
-</mat-chip-set>
-
-
-<router-outlet></router-outlet>
+<mat-grid-list cols="4" rowHeight="100%">
+  <mat-grid-tile>
+    <div class="scrollable-content">
+      <div class="content">
+        <mat-grid-tile-header><h4>Overview</h4></mat-grid-tile-header>
+        <a class="mb-1" mat-flat-button [routerLink]="" (click)="createAntrag()">Create new Antrag</a>
+        @for (overviewItem of overview$ | async; track overviewItem.antragId) {
+          <app-my-overview-item [overviewItem]="overviewItem" [routerLink]="['antrag/', overviewItem.antragId]"></app-my-overview-item>
+        }
+      </div>
+    </div>
+  </mat-grid-tile>
+  <mat-grid-tile colspan="3">
+    <div class="scrollable-content">
+      <div class="content">
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  </mat-grid-tile>
+</mat-grid-list>

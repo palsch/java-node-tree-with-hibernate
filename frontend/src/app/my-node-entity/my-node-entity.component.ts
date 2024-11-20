@@ -1,26 +1,36 @@
-import { Component, computed, effect, input, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { NodeAttributesPipe } from '../node-attributes.pipe';
 import { FormsModule } from '@angular/forms';
 import { NodeEntity } from '../node.types';
 import { MatAnchor } from '@angular/material/button';
-import { JsonPipe } from '@angular/common';
-import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
+import { JsonPipe, NgClass } from '@angular/common';
+import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
 import { MatFormField, MatFormFieldModule, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatInput, MatInputModule } from '@angular/material/input';
 import { MyDocumentUploadComponent } from '../my-document-upload/my-document-upload.component';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { BackendServiceService } from '../backend-service.service';
-import { tap } from 'rxjs';
+import { catchError, tap } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { MatDatepicker, MatDatepickerInput, MatDatepickerModule, MatDatepickerToggle } from '@angular/material/datepicker';
-import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatOption } from '@angular/material/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+// Depending on whether rollup is used, moment needs to be imported differently.
+// Since Moment.js doesn't have a default export, we normally need to import using the `* as`
+// syntax. However, rollup creates a synthetic default module and we thus need to import it using
+// the `default as` syntax.
+// tslint:disable-next-line:no-duplicate-imports
+import * as _moment from 'moment';
+import { default as _rollupMoment } from 'moment';
+import { MatSelect } from '@angular/material/select';
+import { Clipboard } from '@angular/cdk/clipboard';
+import { MatIconModule } from '@angular/material/icon';
+
+const moment = _rollupMoment || _moment;
 
 @Component({
   selector: 'app-my-node-entity',
   standalone: true,
-  providers: [
-    provideNativeDateAdapter(),
-  ],
   imports: [
     FormsModule,
     MatAnchor,
@@ -29,7 +39,6 @@ import { provideNativeDateAdapter } from '@angular/material/core';
     MatCardContent,
     MatCardHeader,
     MatCardActions,
-    MatCardSubtitle,
     MatCardTitle,
     MatFormField,
     MatLabel,
@@ -41,7 +50,7 @@ import { provideNativeDateAdapter } from '@angular/material/core';
     MatDatepickerToggle,
     MatDatepicker,
     MatHint,
-    MatFormFieldModule, MatInputModule, MatDatepickerModule
+    MatFormFieldModule, MatInputModule, MatDatepickerModule, MatOption, MatSelect, NgClass, MatIconModule
   ],
   templateUrl: './my-node-entity.component.html',
   styleUrl: './my-node-entity.component.scss'
@@ -60,6 +69,10 @@ export class MyNodeEntityComponent {
   nodeEntityToRender = signal<NodeEntity | null>(null);
 
   private modelChangeTimeout: any;
+  private _snackBar = inject(MatSnackBar);
+
+  readonly paymentType = ['MONTHLY', 'DAILY'];
+
 
   constructor(private backendService: BackendServiceService) {
     effect(() => {
@@ -74,21 +87,38 @@ export class MyNodeEntityComponent {
 
     this.modelChangeTimeout = setTimeout(() => {
       this.saveNode();
-    }, 2000);
+    }, 1000);
+  }
+
+  private _clipboard = inject(Clipboard);
+  copyId() {
+    this._clipboard.copy(this.nodeEntity().id);
   }
 
   saveNode(): void {
+    if (this.modelChangeTimeout) {
+      clearTimeout(this.modelChangeTimeout);
+    }
+
     // make a copy of the node entity (ignore childNodes)
     const nodeEntityCopy = { ...this.nodeEntityToRender(), childNodes: [] } as any;
 
     // save all attribute changes to node entity and sent that to backend
-    this.attributes().forEach(a => nodeEntityCopy[a.name] = a.value);
+    this.attributes()
+      .filter(a => a.value !== '')
+      .map(a => ({ ...a, value: moment.isMoment(a.value) ? a.value.format('YYYY-MM-DD') : a.value }))
+      .forEach(a => nodeEntityCopy[a.name] = a.value);
 
     console.log('Save node', nodeEntityCopy);
     this.backendService.saveNode(this.antragId(), nodeEntityCopy)
       .pipe(
         tap(a => console.log('saved node', a)),
-        tap(a => this.nodeEntityToRender.set(a))
+        tap(a => this.nodeEntityToRender.set(a)),
+        tap(a => this._snackBar.open('Updated node: ' + a.dtype)),
+        catchError(e => {
+          this._snackBar.open('Error updating node: ' + e.message);
+          return e;
+        })
       )
       .subscribe();
   }
@@ -102,7 +132,7 @@ export class MyNodeEntityComponent {
     if (!node) {
       return;
     }
-    
+
     this.backendService.removeNode(this.antragId(), node.id)
       .pipe(
         tap(a => console.log('removed node', node)),

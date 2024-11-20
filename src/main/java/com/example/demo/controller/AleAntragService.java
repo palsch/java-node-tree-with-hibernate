@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,7 +22,8 @@ public class AleAntragService {
 
     // Overview
     public Iterable<AleAntragMetadataDto> getAleAntrags() {
-        return aleAntragRepository.findAllByOwnerUserId(ownerUserId);
+        List<AleAntragMetadataDto> antragList = aleAntragRepository.findAllByOwnerUserId(ownerUserId);
+        return antragList.stream().map(aleAntragMetadataDto -> aleAntragMetadataDto.withNodeCount(aleAntragRepository.countChildNodes(aleAntragMetadataDto.antragId()))).toList();
     }
 
     // ALE Antrag CRUD

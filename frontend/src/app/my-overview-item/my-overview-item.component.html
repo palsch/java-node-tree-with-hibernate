@@ -1,5 +1,15 @@
-<p>Antrag: {{ overviewItem().antragId }} - {{ overviewItem().status }}
-  <br/>
-  <a mat-button [routerLink]=""  (click)="openAntrag.emit(overviewItem())">Open</a>
-</p>
-
+<mat-card appearance="outlined" class="mb-1 clickable" >
+  <mat-card-header>
+    <mat-card-title>
+      <div  class="title_with_icon">
+        Antrag
+        <mat-icon class="clickable" aria-hidden="false" aria-label="Copy ID" fontIcon="content_copy" (click)="copyId($event)"></mat-icon>
+      </div>
+    </mat-card-title>
+    <mat-card-subtitle>Nodes: {{ overviewItem().nodeCount }}</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="node-id">{{ overviewItem().updatedAt | date:'YYYY.d.MM - HH:mm:ss'}}</div>
+    <div class="node-id">Status: {{ overviewItem().status }}</div>
+  </mat-card-content>
+</mat-card>

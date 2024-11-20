@@ -1,5 +1,9 @@
-
 @if (antrag$ | async; as antrag) {
   <h4>Antrag</h4>
+  <mat-chip-set aria-label="Performance Data">
+    <mat-chip>Get Antrag: {{ backendService.get_antrag_time }} ms</mat-chip>
+    <mat-chip>Update Node: {{ backendService.update_node_time }} ms</mat-chip>
+  </mat-chip-set>
+
   <app-my-node-entity [nodeEntity]="antrag" [level]="0" [antragId]="antrag.id"></app-my-node-entity>
 }

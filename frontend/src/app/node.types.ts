@@ -24,6 +24,8 @@ export interface DocumentUpload {
 export interface OverviewItem {
   antragId: string;
   status: string;
+  updatedAt: string;
+  nodeCount: number;
 }
 
 export interface NodeAttrbute {

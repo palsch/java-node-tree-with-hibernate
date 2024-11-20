@@ -21,6 +21,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.AccessLevel;
@@ -81,7 +82,7 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = NodeEntity.class)
     @BatchSize(size = 10) // optimize the batch size for the child nodes -> reduce the number of queries
     @Fetch(FetchMode.SUBSELECT)
-//    @OrderBy
+    @OrderBy("createdAt")
     private List<TChildNode> childNodes = new ArrayList<>();
 
     @JsonIgnore
