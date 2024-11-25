@@ -1,37 +1,43 @@
 package com.example.demo.questions;
 
 import com.example.demo.base.NodeEntity;
-import com.example.demo.base.Question;
+import com.example.demo.base.question.SimpleQuestion;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Optional;
-
 /**
  * IbanQuestion
- * (simple question)
  */
 @Getter
 @Setter
 
 @Entity
 @DiscriminatorValue("iban_question")
-public class IbanQuestion extends Question<NodeEntity<?>> {
+public class IbanQuestion extends SimpleQuestion {
 
     private String iban;
 
+    /**
+     * @param node the nodeEntity to update
+     * @return change log // TODO: change log return type
+     */
     @Override
-    protected String updateQuestion(Question<NodeEntity<?>> question) {
+    protected String updateNode(NodeEntity<?> node) {
+        IbanQuestion question = assertIsIbanQuestion(node);
+
         // update iban
-        setIban(((IbanQuestion) question).getIban());
+        setIban(question.getIban());
 
         return "iban question updated";
     }
 
-    @Override
-    public Optional<NodeEntity<?>> createNewChildNode() {
-        return Optional.empty();
+    private IbanQuestion assertIsIbanQuestion(NodeEntity<?> node) {
+        if (node instanceof IbanQuestion) {
+            return (IbanQuestion) node;
+        } else {
+            throw new IllegalArgumentException("Not an IbanQuestion");
+        }
     }
 }

@@ -99,7 +99,7 @@ public class AleAntragService {
 
     private void assertOwnerUserId(UUID antragId) {
         String ownerUserIdByAntragId = aleAntragRepository.getOwnerUserIdByAntragId(antragId);
-        if (!ownerUserIdByAntragId.equals(ownerUserId)) {
+        if (!ownerUserId.equals(ownerUserIdByAntragId)) {
             throw new IllegalArgumentException("OwnerUserId does not match");
         }
     }

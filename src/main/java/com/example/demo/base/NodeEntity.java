@@ -18,15 +18,13 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedAttributeNode;
-import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
@@ -42,47 +40,68 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Base class for a node entity.
+ * <p>
+ * A node entity is a node in a tree structure.
+ * It can have child nodes.
+ * It is used for questions, answers, and other nodes.
+ * The node entity is a base class for all nodes.
+ * Every subclass must have a {@link DiscriminatorValue} annotation, so we explicitly define the dtype (benefit: the class name is not relevant, and can be changed without breaking anything).
+ *
+ * @param <TChildNode> the type of the child nodes - has to be a subclass of {@link NodeEntity}
+ */
 @Slf4j
 @Getter
-//@Setter
+// only protected setter allowed, so no setter outside the package in domain driven design
+@Setter(AccessLevel.PROTECTED)
 
-@NamedEntityGraph(
-        name = "Node.childNodes",
-        attributeNodes = @NamedAttributeNode("childNodes")
-)
+// Configures jackson to use the dtype defined by {@link DiscriminatorValue} as type identifier
 @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME,
         include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "dtype")
-//@JsonDeserialize(using = NodeDeserializer.class)
 
+// This tells Hibernate to create the dtype column
+@DiscriminatorColumn(name = "dtype", discriminatorType = DiscriminatorType.STRING)
+
+// InheritanceType.JOINED is used to create a separate table for each subclass
+@Inheritance(strategy = InheritanceType.JOINED)
+
+// db table name
 @Entity(name = "node")
+// db table indexes
 @Table(indexes = {
         @Index(name = "idx_node_parent_id", columnList = "parent_id"),
         @Index(name = "idx_node_dtype", columnList = "dtype")
 })
-@Inheritance(strategy = InheritanceType.JOINED)
-// Change of a class name breaks the code - Solutions could be to set the name manually on each class: @DiscriminatorValue("ALE_ANTRAG")
-@DiscriminatorColumn(name = "dtype", discriminatorType = DiscriminatorType.STRING)  // This tells Hibernate to create the dtype column
-@DiscriminatorValue("node") // This tells Hibernate to set the value of the dtype column to "node" for this class
 public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
+
+    @Setter(AccessLevel.NONE) // no setter allowed, hibernate will set the id using reflection
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    /**
+     * Discriminator column to store the dtype
+     */
     @Column(insertable = false, updatable = false)
     private String dtype;
 
-    // Reference to the parent node, if applicable
-    @Getter(AccessLevel.NONE)
-
+    /**
+     * Reference to the parent node, if applicable
+     */
     @JsonIgnore
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id") // Foreign key to the parent node
     protected NodeEntity<?> parent;
 
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    /**
+     * The child nodes of the node
+     */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) // only include this list in json if not empty
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = NodeEntity.class)
-    @BatchSize(size = 10) // optimize the batch size for the child nodes -> reduce the number of queries
-    @Fetch(FetchMode.SUBSELECT)
+    @BatchSize(size = 50) // optimize the batch size for the child nodes -> reduce the number of queries
+    @Fetch(FetchMode.JOIN) // fetch the child nodes eagerly
     @OrderBy("createdAt")
     private List<TChildNode> childNodes = new ArrayList<>();
 
@@ -94,15 +113,20 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @JsonIgnore
-    @Transient
-    private boolean deserialized = false;
-
-    public NodeEntity() {
-//        updateTypeFromDiscriminator();
+    /**
+     * Initializes the node before it is first time stored in the database.
+     */
+    @PrePersist
+    private void init() {
+        initializeNode();
+        updateTypeFromDiscriminator();
     }
 
-    @PrePersist
+    /**
+     * Update the dtype from the DiscriminatorValue annotation
+     * <p>
+     * <strong>IMPORTANT</strong>: Every subclass must have a DiscriminatorValue annotation
+     */
     private void updateTypeFromDiscriminator() {
         DiscriminatorValue discriminatorValue = this.getClass().getAnnotation(DiscriminatorValue.class);
         if (discriminatorValue != null) {
@@ -113,10 +137,11 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     }
 
     /**
-     * Update the nodeEntity itself with the given nodeEntity data (not the child nodes)
+     * Update the node itself with the given data (not the child nodes). This method is called by {@link #update(NodeEntity)}.
+     * The given data is of the same type as the node.
      *
      * @param nodeEntity the nodeEntity to update
-     * @return a change log
+     * @return change log // TODO: change log return type
      */
     protected abstract String updateNode(NodeEntity<?> nodeEntity);
 
@@ -127,9 +152,16 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
      *
      * @return the new child node or an empty Optional
      */
-    public abstract Optional<TChildNode> createNewChildNode();
+    protected abstract Optional<TChildNode> createNewChildNode();
 
-    public Optional<TChildNode> addNewChildNode() {
+    /**
+     * Adds a new child node by calling {@link #createNewChildNode()} and then {@link #addNode(NodeEntity)}.
+     * <p>
+     * If no child node was created by {@link #createNewChildNode()}, an empty Optional is returned.
+     *
+     * @return the new child node or an empty Optional
+     */
+    final public Optional<TChildNode> addNewChildNode() {
         Optional<TChildNode> newChildNodeOptional = createNewChildNode();
 
         if (newChildNodeOptional.isEmpty()) {
@@ -141,47 +173,78 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     }
 
     /**
-     * This method is called after the node is added to the parent node
-     * and before the node is returned to the client
-     * Override this method to setup the node if needed
+     * This method is called after the node is added to the parent node and before the node is returned to the client
+     * <b>OR</b> if it is a root node it is initialized before it is stored in the database.
      * <p>
-     * For example to setup child nodes, document uploads, etc.
+     * Override this method to set up the node if needed
+     * <p>
+     * E.g. to set up child nodes (add initial answers or questions), document uploads, etc.
      */
     protected void initializeNode() {
-        // override this method to setup the node if needed
+        // override this method to set up the node if needed
     }
 
     /**
-     * Override this method if you want to prevent the last child node from being removed on special conditions
+     * Override this method if you want to prevent the last child node from being removed on special conditions.
+     * E.g. if at least one answer must be present for a yes/no question.
      *
      * @return true if the last child node can be removed
+     * @see #isRemoveChildNodesAllowed()
      */
     protected boolean isRemoveLastChildNodeAllowed() {
         return true;
     }
 
     /**
-     * Override this method if you want to allow the removal of child nodes
+     * Override this method if you want to allow the removal of child nodes.
+     * <p>
+     * By default, child nodes cannot be removed.
      *
-     * @return true if child nodes can be removed
+     * @return true if child nodes can be removed (default is false)
      */
     protected boolean isRemoveChildNodesAllowed() {
         return false;
     }
 
-    public String update(NodeEntity<?> nodeEntity) {
+    /**
+     * Override this method if you want to prevent child nodes from being added.
+     * <p>
+     * By default, child nodes can be added.
+     *
+     * @return true if child nodes can be added (default is true)
+     */
+    protected boolean isAddingChildNodesAllowed() {
+        return true;
+    }
+
+    /**
+     * Retuns a read-only list of the child nodes.
+     */
+    public List<TChildNode> getChildNodes() {
+        return childNodes.stream().toList();
+    }
+
+    /**
+     * Update the node with the given data. Also updates the child nodes if existing.
+     *
+     * @param nodeEntity the new data to update the node from - must be of the same type
+     * @return change log // TODO: change log return type
+     */
+    final public String update(NodeEntity<?> nodeEntity) {
         log.info(this.updateNode(nodeEntity));
         return updateChildNodes(nodeEntity);
     }
 
     /**
-     * Update the child nodes of the node
+     * Update only the child nodes of the node with the given data. The node itself is not updated.
      * <p>
-     * It won't add or remove child nodes
+     * It gets the child nodes from the given nodeEntity and updates the existing child nodes.
+     * It won't add or remove child nodes, only update the existing ones.
      *
-     * @param updateNodeEntity
+     * @param updateNodeEntity the new data to update the child nodes from - must be of the same type as the current node.
+     * @return change log // TODO: change log return type
      */
-    public String updateChildNodes(NodeEntity<?> updateNodeEntity) {
+    final public String updateChildNodes(NodeEntity<?> updateNodeEntity) {
         List<TChildNode> newChildNodes = (List<TChildNode>) updateNodeEntity.getChildNodes();
         List<TChildNode> existingChildNodes = this.getChildNodes();
 
@@ -197,12 +260,12 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     }
 
     /**
-     * Find a nodeEntity by id recursively
+     * Find a nodeEntity by id. Search also in the child nodes.
      *
-     * @param nodeEntity
-     * @return the nodeEntity if found, otherwise empty Optional
+     * @param nodeEntity the node with id to find. If the id is null, the method returns an empty Optional.
+     * @return the node if found, otherwise empty Optional
      */
-    public Optional<NodeEntity<?>> findNode(NodeEntity<?> nodeEntity) {
+    final public Optional<NodeEntity<?>> findNode(NodeEntity<?> nodeEntity) {
         // find the nodeEntity by id recursively
         if (nodeEntity == null || nodeEntity.getId() == null) {
             return Optional.empty();
@@ -214,7 +277,7 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     /**
      * Find a node by id recursively
      */
-    public Optional<NodeEntity<?>> findNodeById(UUID id) {
+    final public Optional<NodeEntity<?>> findNodeById(UUID id) {
         if (id == null) {
             return Optional.empty();
         }
@@ -235,7 +298,18 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
         return Optional.empty();
     }
 
-    public void addNode(TChildNode node) {
+    /**
+     * Add a node to the child nodes if allowed.
+     *
+     * @param node the node to add
+     */
+    final public void addNode(TChildNode node) {
+        assertAddChildNodeIsAllowed();
+
+        if (node == null) {
+            throw new IllegalArgumentException("node is null");
+        }
+
         node.parent = this;
         childNodes.add(node);
         node.initializeNode();
@@ -247,7 +321,7 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
      * @param id the id of the node to remove
      * @return true if the node was removed, otherwise false
      */
-    public boolean removeNodeById(UUID id) {
+    final public boolean removeNodeById(UUID id) {
         if (id == null) {
             throw new IllegalArgumentException("id is null");
         }
@@ -275,7 +349,7 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
         return false;
     }
 
-    public void removeNode(NodeEntity<?> nodeEntity) {
+    final public void removeNode(NodeEntity<?> nodeEntity) {
         // first try to remove from the current nodeEntity
         if (childNodes.contains(nodeEntity)) {
             assertRemoveChildNodesIsAllowed();
@@ -295,7 +369,12 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
         }
     }
 
-    public void removeNodes() {
+    /**
+     * Remove all child nodes if allowed.
+     *
+     * @see #isRemoveChildNodesAllowed()
+     */
+    final public void removeNodes() {
         assertRemoveChildNodesIsAllowed();
         assertRemoveLastChildNodeIsAllowed();
 
@@ -303,6 +382,12 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
             node.parent = null;
         }
         childNodes.clear();
+    }
+
+    private void assertAddChildNodeIsAllowed() {
+        if (!isAddingChildNodesAllowed()) {
+            throw new IllegalArgumentException("Cannot add child node");
+        }
     }
 
     private void assertRemoveChildNodesIsAllowed() {

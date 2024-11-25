@@ -34,7 +34,7 @@ public abstract class YesNoQuestion<TAnswer extends NodeEntity<?>> extends Quest
      */
     @Override
     protected boolean isRemoveLastChildNodeAllowed() {
-        return !(getYesNo() == addAnswersOnYes());
+        return getYesNo() != null && !(getYesNo() == addAnswersOnYes());
     }
 
     @Override

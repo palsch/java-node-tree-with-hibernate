@@ -25,13 +25,22 @@ public interface NodeEntityRepository extends JpaRepository<NodeEntity<?>, UUID>
     int countChildNodes(UUID id);
 
     /**
-     * Update the updated_at timestamp of the given node by id
+     * Update the updated_at timestamp of the given node by id and the complete node tree.
      */
     @Modifying
     @Query(value = """
+             WITH RECURSIVE parent_nodes AS (
+                SELECT id, parent_id
+                FROM node
+                WHERE id = ?1
+                UNION ALL
+                SELECT n.id, n.parent_id
+                FROM node n
+                         INNER JOIN parent_nodes p ON p.parent_id = n.id
+            )
             UPDATE node
             SET updated_at = now()
-            WHERE id = ?1
+            WHERE id IN (SELECT id FROM parent_nodes);
             """, nativeQuery = true)
     void updateNodeUpdatedAt(UUID id);
 }

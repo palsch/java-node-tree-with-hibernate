@@ -9,7 +9,7 @@ import { MatInput, MatInputModule } from '@angular/material/input';
 import { MyDocumentUploadComponent } from '../my-document-upload/my-document-upload.component';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { BackendServiceService } from '../backend-service.service';
-import { catchError, tap } from 'rxjs';
+import { catchError, filter, tap } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { MatDatepicker, MatDatepickerInput, MatDatepickerModule, MatDatepickerToggle } from '@angular/material/datepicker';
 import { MatOption } from '@angular/material/core';
@@ -153,8 +153,10 @@ export class MyNodeEntityComponent {
     // @ts-ignore
     this.backendService.addNode(this.antragId(), this.nodeEntityToRender().id)
       .pipe(
+        // don't do anything if node is not defined
+        filter(() => !!this.nodeEntityToRender()),
+        tap(a => this.nodeEntityToRender()!.childNodes ? this.nodeEntityToRender()!.childNodes.push(a) : this.nodeEntityToRender()!.childNodes = [a]),
         tap(a => console.log('added node', a)),
-        tap(a => this.nodeEntityToRender()?.childNodes.push(a))
       )
       .subscribe();
   }
