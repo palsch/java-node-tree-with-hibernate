@@ -105,7 +105,7 @@ export class MyNodeEntityComponent {
 
     // save all attribute changes to node entity and sent that to backend
     this.attributes()
-      .filter(a => a.value !== '')
+      //.filter(a => !a.value)
       .map(a => ({ ...a, value: moment.isMoment(a.value) ? a.value.format('YYYY-MM-DD') : a.value }))
       .forEach(a => nodeEntityCopy[a.name] = a.value);
 
