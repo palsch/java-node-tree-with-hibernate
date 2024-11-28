@@ -68,8 +68,7 @@ DELETE /api/ale_antrag/{antrag_id}/child-nodes/{child_node_id}
 Removes a child node from a specific Antrag.
 
 
-## Profiling
-To enable profiling, run the application with the `profiling` profile:
+To enable db trace logs, run the application with the `dbtrace` profile:
 ```sh
-mvn spring-boot:run -Dspring-boot.run.profiles=profiling
+mvn spring-boot:run -Dspring-boot.run.profiles=dbtrace
 ```

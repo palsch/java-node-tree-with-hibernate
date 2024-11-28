@@ -3,7 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.base.documents.Attachment;
 import com.example.demo.base.documents.DocumentUpload;
 import com.example.demo.controller.dto.AttachmentUploadDto;
-import com.example.demo.repository.DocumentUploadsRepository;
+import com.example.demo.base.repository.DocumentUploadsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

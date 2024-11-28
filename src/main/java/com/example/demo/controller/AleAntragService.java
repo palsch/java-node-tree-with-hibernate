@@ -4,7 +4,7 @@ import com.example.demo.AleAntrag;
 import com.example.demo.base.NodeEntity;
 import com.example.demo.controller.dto.AleAntragMetadataDto;
 import com.example.demo.repository.AleAntragRepository;
-import com.example.demo.repository.NodeEntityRepository;
+import com.example.demo.base.repository.NodeEntityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +67,12 @@ public class AleAntragService {
 
         NodeEntity<?> nodeEntity = nodeEntityRepository.findById(parentId).orElseThrow();
         NodeEntity<?> newChildNodeEntity = nodeEntity.addNewChildNode().orElseThrow();
-        nodeEntityRepository.save(newChildNodeEntity);
+
+        // save the new child node first, so the @PrePersist method lifecycle can create the child nodes
+        newChildNodeEntity = nodeEntityRepository.save(newChildNodeEntity);
+
+        // save all child nodes explicitly, because Hibernate does not save them automatically if they were created inside the @PrePersist method lifecycle
+        nodeEntityRepository.saveAll(newChildNodeEntity.getAllChildNodes());
         return newChildNodeEntity;
     }
 
@@ -78,10 +83,14 @@ public class AleAntragService {
         assertEditable(antragId);
         nodeEntityRepository.updateNodeUpdatedAt(antragId);
 
-        AleAntrag aleAntrag = aleAntragRepository.findById(antragId).orElseThrow();
-        NodeEntity<?> nodeEntityToUpdate = aleAntrag.findNode(updateNodeEntity).orElseThrow();
+        NodeEntity<?> nodeEntityToUpdate = nodeEntityRepository.findById(updateNodeEntity.getId()).orElseThrow();
         nodeEntityToUpdate.update(updateNodeEntity);
-        aleAntragRepository.save(aleAntrag);
+
+        // save all child nodes first explicitly, so they are not remove by Hibernate from the parent node on save,
+        // because Hibernate does not save them automatically if they were created inside the @PrePersist method lifecycle
+        nodeEntityRepository.saveAll(nodeEntityToUpdate.getAllChildNodes());
+        // save the updated node
+        nodeEntityRepository.save(nodeEntityToUpdate);
         return nodeEntityToUpdate;
     }
 
@@ -98,8 +107,10 @@ public class AleAntragService {
     }
 
     private void assertOwnerUserId(UUID antragId) {
-        String ownerUserIdByAntragId = aleAntragRepository.getOwnerUserIdByAntragId(antragId);
-        if (!ownerUserId.equals(ownerUserIdByAntragId)) {
+        Optional<String> ownerUserIdByAntragId = aleAntragRepository.getOwnerUserIdByAntragId(antragId);
+        ownerUserIdByAntragId.orElseThrow(() -> new IllegalArgumentException("Antrag not found"));
+
+        if (!ownerUserId.equals(ownerUserIdByAntragId.get())) {
             throw new IllegalArgumentException("OwnerUserId does not match");
         }
     }

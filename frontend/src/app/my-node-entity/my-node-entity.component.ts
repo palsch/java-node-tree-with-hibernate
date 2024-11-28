@@ -126,19 +126,22 @@ export class MyNodeEntityComponent {
   removeNodeClick(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
-    console.log('Remove node', this.nodeEntityToRender);
+    console.log('Remove node', this.nodeEntityToRender());
     this.removeNode.emit(this.nodeEntityToRender());
   }
 
   onRemoveNode(node: NodeEntity | null): void {
     if (!node) {
+      console.error('Remove node error: node is undefined');
       return;
     }
 
     this.backendService.removeNode(this.antragId(), node.id)
       .pipe(
+        // don't do anything if node is not defined
+        filter(() => !!this.nodeEntityToRender()),
         tap(a => console.log('removed node', node)),
-        tap(a => this.nodeEntity().childNodes = this.nodeEntity().childNodes.filter(n => n.id !== node.id))
+        tap(a => this.nodeEntityToRender()!.childNodes = this.nodeEntityToRender()!.childNodes.filter(n => n.id !== node.id))
       )
       .subscribe();
   }

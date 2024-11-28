@@ -1,15 +1,16 @@
 package com.example.demo.base.documents;
 
+import com.example.demo.base.NodeEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,7 +35,10 @@ public class DocumentUpload {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private UUID nodeId;
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "node_id", nullable = false)
+    private NodeEntity<?> node;
 
     @Convert(converter = DocumentUploadTypeConverter.class)
     private DocumentUploadType type;
@@ -52,10 +56,7 @@ public class DocumentUpload {
 
     private boolean required;
 
-    //@ElementCollection
     @Convert(converter = DocumentTypeListConverter.class)
-    //@CollectionTable(name = "document_upload_doc_types", joinColumns = @JoinColumn(name = "document_upload_id"))
-    //@Column(name = "doc_type")
     private List<DocumentType> docTypes;
 
     public void addAttachment(Attachment attachment) {

@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="backend - start" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
-    <option name="ACTIVE_PROFILES" value="profiling" />
+    <option name="ACTIVE_PROFILES" value="debug" />
     <module name="tree-with-nodes" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.demo.TreeWithNodesApplication" />
     <method v="2">

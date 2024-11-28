@@ -32,7 +32,7 @@ import java.util.Set;
 @MappedSuperclass
 public abstract class NodeWithDocuments<TChildNode extends NodeEntity<?>> extends NodeEntity<TChildNode> {
 
-    @OneToMany(mappedBy = "nodeId", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "node", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<DocumentUpload> documentUploads = new HashSet<>();
 
     /**
@@ -47,11 +47,11 @@ public abstract class NodeWithDocuments<TChildNode extends NodeEntity<?>> extend
 
     /**
      * Either initialize the document uploads with default values or setup the node after loading from the database
+     * <p>
+     * <b>IMPORTANT</b>: If you need to setup the node after loading from the database, override this method and call super.initializeNode()
      */
-    @PostPersist
-    @PostUpdate
     @Override
-    final protected void initializeNode() {
+    protected void initializeNode() {
         // setup of required and optional document upload
         setupDocumentUploads();
     }
@@ -76,8 +76,15 @@ public abstract class NodeWithDocuments<TChildNode extends NodeEntity<?>> extend
         return "answer updated";
     }
 
+    /**
+     * Setup the document uploads for the node.
+     * <p>
+     * This method is called after the node is persisted or updated.
+     * It sets up the document uploads based on the configuration.
+     */
+    @PostUpdate
     private void setupDocumentUploads() {
-        log.debug("setupDocumentUploads for {} - id {}", this.getClass().getSimpleName(), this.getId());
+        log.debug("SETUP_DOCUMENT_UPLOADS for {} - id {}", this.getClass().getSimpleName(), this.getId());
 
         // setup document uploads by configuration
         getDocumentUploadConfigurations().forEach((type, configuration) -> {
@@ -96,7 +103,7 @@ public abstract class NodeWithDocuments<TChildNode extends NodeEntity<?>> extend
 
             // create new
             documentUpload = DocumentUpload.builder()
-                    .nodeId(getId())
+                    .node(this)
                     .type(type)
                     .docTypes(configuration.documentTypes())
                     .maxDocsCount(configuration.maxDocumentCount())

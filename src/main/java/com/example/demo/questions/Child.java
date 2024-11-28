@@ -22,12 +22,6 @@ public class Child extends NodeEntity<NodeEntity<?>> {
 
     @Override
     protected void initializeNode() {
-        // check if already initialized
-        // TODO: fix multiple initialization
-        if (!getChildNodes().isEmpty()) {
-            return;
-        }
-
         // add questions
         addNode(ChildPersonalDataQuestion.builder().build());
     }

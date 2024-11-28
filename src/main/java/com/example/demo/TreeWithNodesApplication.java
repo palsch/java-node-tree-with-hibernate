@@ -20,19 +20,4 @@ public class TreeWithNodesApplication {
     public void init() {
         System.out.println("Application started");
     }
-
-    @Bean
-    @Profile("profiling")
-    public PerformanceProfiler performanceProfiler() {
-        return new PerformanceProfiler();
-    }
-
-    public static class PerformanceProfiler {
-
-        @Scheduled(fixedRate = 60000)
-        public void profile() {
-            // Add profiling logic here
-            System.out.println("Profiling application performance...");
-        }
-    }
 }

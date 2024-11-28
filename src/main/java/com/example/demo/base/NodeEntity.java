@@ -10,8 +10,6 @@ import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Inheritance;
@@ -21,6 +19,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -28,8 +27,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.proxy.HibernateProxy;
 
@@ -75,9 +72,9 @@ import java.util.UUID;
 })
 public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
 
-    @Setter(AccessLevel.NONE) // no setter allowed, hibernate will set the id using reflection
+    // no setter allowed, the id is defined in the init method
+    @Setter(AccessLevel.NONE)
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     /**
@@ -95,7 +92,7 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     @JoinColumn(name = "parent_id") // Foreign key to the parent node
     protected NodeEntity<?> parent;
 
-    @Setter(AccessLevel.NONE) // no setter allowed, hibernate will set the parent using reflection
+    @Setter(AccessLevel.PROTECTED) // no setter allowed, hibernate will set the parent using reflection
     @Column(name = "parent_id", insertable = false, updatable = false)
     private UUID parentId;
 
@@ -103,9 +100,8 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
      * The child nodes of the node
      */
     @JsonInclude(JsonInclude.Include.NON_EMPTY) // only include this list in json if not empty
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = NodeEntity.class)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, targetEntity = NodeEntity.class)
     @BatchSize(size = 50) // optimize the batch size for the child nodes -> reduce the number of queries
-    @Fetch(FetchMode.JOIN) // fetch the child nodes eagerly
     @OrderBy("createdAt")
     private List<TChildNode> childNodes = new ArrayList<>();
 
@@ -119,12 +115,30 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
 
     /**
      * Initializes the node before it is first time stored in the database.
-     * TODO: FIX, this method is not called for added child nodes, if they are stored to the database, why?
      */
     @PrePersist
-    private void init() {
-        initializeNode();
-        updateTypeFromDiscriminator();
+    @PreUpdate
+    protected void init() {
+        // initialize the node only once and do this only if the id is defined by hibernate
+        if (id == null) {
+            id = UUID.randomUUID();
+            initializeNode();
+            updateTypeFromDiscriminator();
+            log.debug("INIT NODE {} - dtype '{}'", this.getClass().getSimpleName(), this.dtype, this.id);
+        }
+
+        initChildNodes();
+    }
+
+    /**
+     * Trigger the "PrePersist"-init method on the child nodes before it is stored in the database.
+     * <p>
+     * This is needed because the "PrePersist" method is not called on the child nodes when they are added to the parent node.
+     */
+    private void initChildNodes() {
+        for (TChildNode childNode : childNodes) {
+            childNode.init();
+        }
     }
 
     /**
@@ -178,12 +192,11 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     }
 
     /**
-     * This method is called after the node is added to the parent node and before the node is returned to the client
-     * <b>OR/AND</b> if it is a root node it is initialized before it is stored in the database.
+     * This method is called only once from the init method.
      * <p>
      * Override this method to set up the node if needed
      * <p>
-     * <b>IMPORTANT</b>: Sometimes the method is called twice, so make sure to check if the node is already initialized.
+     * <b>IMPORTANT</b>: Don't call this method directly, it is called by the init method.
      * <p>
      * E.g. to set up child nodes (add initial answers or questions), document uploads, etc.
      */
@@ -317,9 +330,9 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
             throw new IllegalArgumentException("node is null");
         }
 
-        node.parent = this;
+        setSelfAsParentToNode(node);
         childNodes.add(node);
-        node.initializeNode();
+        log.debug("ADD NODE {} - dtype '{}'", node.getClass().getSimpleName(), node.getDtype());
     }
 
     /**
@@ -365,8 +378,8 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
                 assertRemoveLastChildNodeIsAllowed();
             }
 
-            nodeEntity.parent = null;
             childNodes.remove(nodeEntity);
+            removeParentFromNode(nodeEntity);
             return;
         }
 
@@ -374,6 +387,21 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
         for (TChildNode childNode : childNodes) {
             childNode.removeNode(nodeEntity);
         }
+    }
+
+    /**
+     * Get all child nodes recursively as a list.
+     *
+     * @return a list of all child nodes
+     */
+    @JsonIgnore
+    public List<NodeEntity<?>> getAllChildNodes() {
+        List<NodeEntity<?>> allChildNodes = new ArrayList<>();
+        for (TChildNode childNode : childNodes) {
+            allChildNodes.add(childNode);
+            allChildNodes.addAll(childNode.getAllChildNodes());
+        }
+        return allChildNodes;
     }
 
     /**
@@ -386,9 +414,19 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
         assertRemoveLastChildNodeIsAllowed();
 
         for (TChildNode node : childNodes) {
-            node.parent = null;
+            removeParentFromNode(node);
         }
         childNodes.clear();
+    }
+
+    private void setSelfAsParentToNode(NodeEntity<?> node) {
+        node.setParent(this);
+        node.setParentId(this.getId());
+    }
+
+    private void removeParentFromNode(NodeEntity<?> node) {
+        node.setParent(null);
+        node.setParentId(null);
     }
 
     private void assertAddChildNodeIsAllowed() {

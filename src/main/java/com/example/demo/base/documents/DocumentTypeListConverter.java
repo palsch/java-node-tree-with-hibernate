@@ -12,6 +12,9 @@ import jakarta.persistence.Converter;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Stores a list of DocumentType as a json array string in the database
+ */
 @Converter(autoApply = true)
 public class DocumentTypeListConverter implements AttributeConverter<List<DocumentType>, String> {
 

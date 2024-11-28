@@ -6,12 +6,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface AleAntragRepository extends JpaRepository<AleAntrag, UUID> {
 
     @Query("SELECT a.metadaten.ownerUserId FROM AleAntrag a WHERE a.id = :id")
-    String getOwnerUserIdByAntragId(UUID id);
+    Optional<String> getOwnerUserIdByAntragId(UUID id);
 
     @Query("SELECT a.metadaten.status FROM AleAntrag a WHERE a.id = :id")
     String getStatusByAntragId(UUID id);
