@@ -2,7 +2,8 @@ package com.example.demo.base.documents;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-public interface DocumentType {
+
+public interface DocumentUploadType {
     @JsonInclude
     String name();
 }

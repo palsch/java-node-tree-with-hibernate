@@ -1,18 +1,23 @@
 package com.example.demo.base.documents;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -24,10 +29,15 @@ import java.util.UUID;
 @AllArgsConstructor
 
 @Entity
-public class DocumentUploads {
+public class DocumentUpload {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    private UUID nodeId;
+
+    @Convert(converter = DocumentUploadTypeConverter.class)
+    private DocumentUploadType type;
 
     /**
      * Use can set this flag to true if the upload should be done later after the form is submitted.
@@ -35,19 +45,18 @@ public class DocumentUploads {
      */
     private Boolean laterUpload;
 
-    private String ownerUserId;
-
     @OneToMany(mappedBy = "documentUpload", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Attachment> attachments;
+    private Set<Attachment> attachments = new HashSet<>();
 
-    @Transient
-    private List<DocumentType> docTypes;
-
-    @Transient
     private int maxDocsCount;
 
-    @Transient
     private boolean required;
+
+    //@ElementCollection
+    @Convert(converter = DocumentTypeListConverter.class)
+    //@CollectionTable(name = "document_upload_doc_types", joinColumns = @JoinColumn(name = "document_upload_id"))
+    //@Column(name = "doc_type")
+    private List<DocumentType> docTypes;
 
     public void addAttachment(Attachment attachment) {
         attachments.add(attachment);

@@ -2,6 +2,7 @@ export interface NodeEntity {
   id: string;
   dtype: string;
   childNodes: NodeEntity[];
+  documentUploads?: DocumentUpload[];
   requiredDocumentUpload?: DocumentUpload;
   optionalDocumentUpload?: DocumentUpload;
 }
@@ -10,6 +11,7 @@ export interface DocumentUpload {
   id?: string;
   aleAntragId?: string;
   answerId?: string;
+  type: string;
   docTypes: Array<string>;
   attachments?: Array<string>;
   maxDocsCount: number;

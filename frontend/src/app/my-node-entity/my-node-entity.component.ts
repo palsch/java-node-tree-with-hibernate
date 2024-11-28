@@ -59,7 +59,7 @@ export class MyNodeEntityComponent {
 
   readonly attrbutesPipe = new NodeAttributesPipe();
 
-  attributes = computed(() => this.attrbutesPipe.transform(this.nodeEntityToRender(), ['requiredDocumentUpload', 'optionalDocumentUpload']));
+  attributes = computed(() => this.attrbutesPipe.transform(this.nodeEntityToRender(), ['parentId', 'documentUploads', 'requiredDocumentUpload', 'optionalDocumentUpload']));
 
   nodeEntityToRender = signal<NodeEntity | null>(null);
 

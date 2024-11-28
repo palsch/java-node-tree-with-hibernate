@@ -1,8 +1,7 @@
 package com.example.demo.base.documents;
 
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -42,7 +41,7 @@ public class Attachment {
      * <a href="https://vladmihalcea.com/the-best-way-to-map-a-onetomany-association-with-jpa-and-hibernate/">One to Many</a>
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    private DocumentUploads documentUpload;
+    private DocumentUpload documentUpload;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -60,7 +59,7 @@ public class Attachment {
      */
     private UUID documentId;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = DocumentTypeConverter.class)
     private DocumentType documentType;
 
     private boolean submitted = false;

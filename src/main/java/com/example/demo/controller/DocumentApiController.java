@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.base.documents.Attachment;
-import com.example.demo.base.documents.DocumentUploads;
+import com.example.demo.base.documents.DocumentUpload;
 import com.example.demo.controller.dto.AttachmentUploadDto;
 import com.example.demo.repository.DocumentUploadsRepository;
 import lombok.RequiredArgsConstructor;
@@ -47,8 +47,8 @@ public class DocumentApiController {
 
     @PostMapping(path = "/<documentUploadId>", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public DocumentUploads upload(UUID documentUploadId, AttachmentUploadDto attachmentUploadDto, MultipartFile file) throws IOException {
-        DocumentUploads docUpload = documentUploadsRepository.getReferenceById(documentUploadId);
+    public DocumentUpload upload(UUID documentUploadId, AttachmentUploadDto attachmentUploadDto, MultipartFile file) throws IOException {
+        DocumentUpload docUpload = documentUploadsRepository.getReferenceById(documentUploadId);
 
         // TODO: upload file to document storage service
         UUID docStorageId = UUID.randomUUID();
@@ -67,7 +67,7 @@ public class DocumentApiController {
     @DeleteMapping(value = "/<documentUploadId>/<attachmentId>")
     @ResponseStatus(HttpStatus.OK)
     public void delete(UUID documentUploadId, UUID attachmentId) {
-        DocumentUploads docUpload = documentUploadsRepository.getReferenceById(documentUploadId);
+        DocumentUpload docUpload = documentUploadsRepository.getReferenceById(documentUploadId);
         docUpload.removeAttachment(attachmentId);
     }
 }

@@ -1,6 +1,6 @@
 package com.example.demo.questions.insurance;
 
-import com.example.demo.base.YesNoQuestion;
+import com.example.demo.base.question.YesNoQuestion;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.Getter;
@@ -16,7 +16,7 @@ import java.util.Optional;
 @Setter
 
 @Entity
-@DiscriminatorValue("disability_insurance")
+@DiscriminatorValue("disability_insurance_question")
 public class DisabilityInsuranceQuestion extends YesNoQuestion<DisabilityInsuranceAnswer> {
     @Override
     public Optional<DisabilityInsuranceAnswer> createNewChildNode() {

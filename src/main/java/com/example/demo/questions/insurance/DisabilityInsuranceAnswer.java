@@ -1,7 +1,6 @@
 package com.example.demo.questions.insurance;
 
-import com.example.demo.base.NodeEntity;
-import com.example.demo.base.documents.DocumentType;
+import com.example.demo.questions.AleAntragDocumentType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
@@ -9,8 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Optional;
 
 @Getter
 @Setter
@@ -21,26 +18,21 @@ import java.util.Optional;
 @DiscriminatorValue("disability_insurance_answer")
 public class DisabilityInsuranceAnswer extends InsuranceBenefitAnswer {
 
+    @Transient
     @Override
-    public Optional<NodeEntity<?>> createNewChildNode() {
-        return Optional.empty();
+    protected AleAntragDocumentType getInsuranceApplicationDocumentType() {
+        return AleAntragDocumentType.DISABILITY_INSURANCE_APPLICATION;
     }
 
     @Transient
     @Override
-    protected DocumentType getInsuranceApplicationDocumentType() {
-        return DocumentType.DISABILITY_INSURANCE_APPLICATION;
+    protected AleAntragDocumentType getInsuranceDecisionDocumentType() {
+        return AleAntragDocumentType.DISABILITY_INSURANCE_DECISION;
     }
 
     @Transient
     @Override
-    protected DocumentType getInsuranceDecisionDocumentType() {
-        return DocumentType.DISABILITY_INSURANCE_DECISION;
-    }
-
-    @Transient
-    @Override
-    protected DocumentType getDailyAllowanceStatementDocumentType() {
-        return DocumentType.DISABILITY_INSURANCE_DAILY_ALLOWANCE_STATEMENT;
+    protected AleAntragDocumentType getDailyAllowanceStatementDocumentType() {
+        return AleAntragDocumentType.DISABILITY_INSURANCE_DAILY_ALLOWANCE_STATEMENT;
     }
 }

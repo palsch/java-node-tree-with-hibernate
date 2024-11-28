@@ -3,7 +3,7 @@ package com.example.demo;
 import com.example.demo.base.NodeEntity;
 import com.example.demo.questions.ChildQuestion;
 import com.example.demo.questions.IbanQuestion;
-import com.example.demo.questions.WorkAbilityQuestion;
+import com.example.demo.questions.WorkAbilityNode;
 import com.example.demo.questions.insurance.DisabilityInsuranceQuestion;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Embedded;
@@ -50,7 +50,7 @@ public class AleAntrag extends NodeEntity<NodeEntity<?>> {
 
         // add questions
         addNode(new IbanQuestion()); // question 2
-        addNode(new WorkAbilityQuestion()); // question 3
+        addNode(new WorkAbilityNode()); // question 3
         addNode(new ChildQuestion()); // question 4
         addNode(new DisabilityInsuranceQuestion()); // question 5c
     }

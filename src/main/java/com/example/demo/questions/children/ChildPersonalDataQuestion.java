@@ -1,39 +1,62 @@
 package com.example.demo.questions.children;
 
-import com.example.demo.base.YesNoQuestion;
+import com.example.demo.base.NodeEntity;
+import com.example.demo.base.documents.DocumentUploadConfiguration;
+import com.example.demo.base.documents.DocumentUploadType;
+import com.example.demo.base.question.SimpleNodeWithDocuments;
+import com.example.demo.questions.AleAntragDocumentType;
+import com.example.demo.questions.AleAntragDocumentUploadTypes;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor // for hibernate
 
 @Entity
 @DiscriminatorValue("child_personal_data_question")
-public class ChildPersonalDataQuestion extends YesNoQuestion<ChildPersonalDataAnswer> {
+public class ChildPersonalDataQuestion extends SimpleNodeWithDocuments {
 
-    /**
-     * Only one answer is allowed
-     */
-    @Override
-    public Optional<ChildPersonalDataAnswer> createNewChildNode() {
-        return Optional.empty();
-    }
+    private String name;
+    private String surname;
+    private String ahv;
+    private LocalDate birthday;
 
     @Override
-    protected void initializeNode() {
-        setYesNo(true);
-        addNode(ChildPersonalDataAnswer.builder()
-                .vorname("Kind")
-                .build());
+    protected String updateNodeImpl(NodeEntity<?> nodeEntity) {
+        ChildPersonalDataQuestion question = assertIsChildPersonalDataQuestion(nodeEntity);
+
+        setName(question.getName());
+        setSurname(question.getSurname());
+        setAhv(question.getAhv());
+        setBirthday(question.getBirthday());
+
+        return "updated child personal data question";
     }
 
+    @Transient
+    @Override
+    protected Map<DocumentUploadType, DocumentUploadConfiguration> getDocumentUploadConfigurations() {
+        return Map.of(AleAntragDocumentUploadTypes.REQUIRED, new DocumentUploadConfiguration(AleAntragDocumentUploadTypes.REQUIRED, List.of(AleAntragDocumentType.BIRTH_CERTIFICATE), 3, true));
+    }
+
+    private ChildPersonalDataQuestion assertIsChildPersonalDataQuestion(NodeEntity<?> node) {
+        if (node instanceof ChildPersonalDataQuestion) {
+            return (ChildPersonalDataQuestion) node;
+        } else {
+            throw new IllegalArgumentException("Not an ChildPersonalDataQuestion");
+        }
+    }
 }

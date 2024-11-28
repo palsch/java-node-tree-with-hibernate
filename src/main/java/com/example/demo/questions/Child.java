@@ -1,14 +1,12 @@
 package com.example.demo.questions;
 
 import com.example.demo.base.NodeEntity;
-import com.example.demo.base.Question;
 import com.example.demo.questions.children.ChildPersonalDataQuestion;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Optional;
@@ -20,11 +18,14 @@ import java.util.Optional;
 
 @Entity
 @DiscriminatorValue("child")
-public class Child extends NodeEntity<Question<?>> {
+public class Child extends NodeEntity<NodeEntity<?>> {
 
+    @Override
     protected void initializeNode() {
-        if (getId() != null) {
-            throw new IllegalArgumentException("Child already setup");
+        // check if already initialized
+        // TODO: fix multiple initialization
+        if (!getChildNodes().isEmpty()) {
+            return;
         }
 
         // add questions
@@ -43,7 +44,7 @@ public class Child extends NodeEntity<Question<?>> {
      * All required childred nodes are created in the initializeNode method
      */
     @Override
-    public Optional<Question<?>> createNewChildNode() {
+    public Optional<NodeEntity<?>> createNewChildNode() {
         return Optional.empty();
     }
 

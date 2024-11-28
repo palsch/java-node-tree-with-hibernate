@@ -95,6 +95,10 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     @JoinColumn(name = "parent_id") // Foreign key to the parent node
     protected NodeEntity<?> parent;
 
+    @Setter(AccessLevel.NONE) // no setter allowed, hibernate will set the parent using reflection
+    @Column(name = "parent_id", insertable = false, updatable = false)
+    private UUID parentId;
+
     /**
      * The child nodes of the node
      */
@@ -115,6 +119,7 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
 
     /**
      * Initializes the node before it is first time stored in the database.
+     * TODO: FIX, this method is not called for added child nodes, if they are stored to the database, why?
      */
     @PrePersist
     private void init() {
@@ -174,9 +179,11 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
 
     /**
      * This method is called after the node is added to the parent node and before the node is returned to the client
-     * <b>OR</b> if it is a root node it is initialized before it is stored in the database.
+     * <b>OR/AND</b> if it is a root node it is initialized before it is stored in the database.
      * <p>
      * Override this method to set up the node if needed
+     * <p>
+     * <b>IMPORTANT</b>: Sometimes the method is called twice, so make sure to check if the node is already initialized.
      * <p>
      * E.g. to set up child nodes (add initial answers or questions), document uploads, etc.
      */

@@ -1,8 +1,12 @@
 package com.example.demo.questions.insurance;
 
-import com.example.demo.base.AnswerNodeEntityWithDocs;
 import com.example.demo.base.NodeEntity;
 import com.example.demo.base.documents.DocumentType;
+import com.example.demo.base.documents.DocumentUploadConfiguration;
+import com.example.demo.base.documents.DocumentUploadType;
+import com.example.demo.base.question.SimpleNodeWithDocuments;
+import com.example.demo.questions.AleAntragDocumentType;
+import com.example.demo.questions.AleAntragDocumentUploadTypes;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.MappedSuperclass;
@@ -13,11 +17,12 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
 @MappedSuperclass
-public abstract class InsuranceBenefitAnswer extends AnswerNodeEntityWithDocs {
+public abstract class InsuranceBenefitAnswer extends SimpleNodeWithDocuments {
 
     private LocalDate requestDate;
     private LocalDate receiveDate;
@@ -27,14 +32,22 @@ public abstract class InsuranceBenefitAnswer extends AnswerNodeEntityWithDocs {
 
     private BigDecimal payment;
 
-    protected abstract DocumentType getInsuranceApplicationDocumentType();
+    protected abstract AleAntragDocumentType getInsuranceApplicationDocumentType();
 
-    protected abstract DocumentType getInsuranceDecisionDocumentType();
+    protected abstract AleAntragDocumentType getInsuranceDecisionDocumentType();
 
-    protected abstract DocumentType getDailyAllowanceStatementDocumentType();
+    protected abstract AleAntragDocumentType getDailyAllowanceStatementDocumentType();
 
     @Transient
     @Override
+    protected Map<DocumentUploadType, DocumentUploadConfiguration> getDocumentUploadConfigurations() {
+        return Map.of(
+                AleAntragDocumentUploadTypes.REQUIRED, new DocumentUploadConfiguration(AleAntragDocumentUploadTypes.REQUIRED, getRequiredDocumentTypes(), 5, true),
+                AleAntragDocumentUploadTypes.OPTIONAL, new DocumentUploadConfiguration(AleAntragDocumentUploadTypes.OPTIONAL, getOptionalDocumentTypes(), 5, false)
+        );
+    }
+
+    @Transient
     protected List<DocumentType> getRequiredDocumentTypes() {
         if (paymentType != null) {
             return receiveDate != null ? List.of(getInsuranceApplicationDocumentType()) :
@@ -45,7 +58,6 @@ public abstract class InsuranceBenefitAnswer extends AnswerNodeEntityWithDocs {
     }
 
     @Transient
-    @Override
     protected List<DocumentType> getOptionalDocumentTypes() {
         if (paymentType != null && paymentType.equals(InsurancePaymentType.DAILY)) {
             return payment != null
@@ -56,17 +68,7 @@ public abstract class InsuranceBenefitAnswer extends AnswerNodeEntityWithDocs {
     }
 
     @Override
-    protected int getRequiredDocumentMaxCount() {
-        return 5;
-    }
-
-    @Override
-    protected int getOptionalDocumentMaxCount() {
-        return 5;
-    }
-
-    @Override
-    protected String updateAnswer(NodeEntity<?> nodeEntity) {
+    protected String updateNodeImpl(NodeEntity<?> nodeEntity) {
         assertAnswerType(nodeEntity);
         InsuranceBenefitAnswer answer = (InsuranceBenefitAnswer) nodeEntity;
 
@@ -84,5 +86,4 @@ public abstract class InsuranceBenefitAnswer extends AnswerNodeEntityWithDocs {
             throw new IllegalArgumentException("NodeEntity must be of type InsuranceBenefitAnswer");
         }
     }
-
 }

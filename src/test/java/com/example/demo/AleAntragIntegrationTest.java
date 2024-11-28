@@ -1,10 +1,9 @@
 package com.example.demo;
 
 import com.example.demo.base.NodeEntity;
-import com.example.demo.base.Question;
 import com.example.demo.questions.ChildQuestion;
 import com.example.demo.questions.IbanQuestion;
-import com.example.demo.questions.WorkAbilityQuestion;
+import com.example.demo.questions.WorkAbilityNode;
 import com.example.demo.questions.insurance.DisabilityInsuranceQuestion;
 import com.example.demo.repository.AleAntragRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,12 +65,12 @@ public class AleAntragIntegrationTest {
                     assertThat(returnedAntrag.getMetadaten().getOwnerUserId()).isEqualTo(TestData.ownerUserId);
                     assertThat(returnedAntrag.getMetadaten().getStatus()).isEqualTo("DRAFT");
 
-                    List<Question<?>> childNodes = returnedAntrag.getChildNodes();
+                    List<NodeEntity<?>> childNodes = returnedAntrag.getChildNodes();
 
                     // assert that all questions are present
                     assertThat(childNodes).hasSize(4);
                     // assert that at least one child node is of each type
-                    assertThat(childNodes).extracting("class").contains(IbanQuestion.class, WorkAbilityQuestion.class, ChildQuestion.class, DisabilityInsuranceQuestion.class);
+                    assertThat(childNodes).extracting("class").contains(IbanQuestion.class, WorkAbilityNode.class, ChildQuestion.class, DisabilityInsuranceQuestion.class);
 
                     // check db
                     AleAntrag aleAntrag = aleAntragRepository.findById(returnedAntrag.getId()).orElseThrow();

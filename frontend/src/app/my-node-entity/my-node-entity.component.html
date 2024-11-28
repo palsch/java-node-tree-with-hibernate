@@ -66,6 +66,10 @@
       }
     </div>
 
+    @for (docUpload of nodeEntityToRender()?.documentUploads; track docUpload) {
+      <app-my-document-upload [docUpload]="docUpload"></app-my-document-upload>
+    }
+
     @if (nodeEntityToRender()?.requiredDocumentUpload) {
       <app-my-document-upload [docUpload]="nodeEntityToRender()?.requiredDocumentUpload"></app-my-document-upload>
     }
@@ -79,7 +83,7 @@
       <app-my-node-entity [nodeEntity]="child" [level]="level() + 1" [antragId]="antragId()" (removeNode)="onRemoveNode($event)"></app-my-node-entity>
     }
 
-    @if (['disability_insurance', 'child_question'].includes(nodeEntityToRender()?.dtype || "")) {
+    @if (['disability_insurance_question', 'child_question'].includes(nodeEntityToRender()?.dtype || "")) {
       <div class="mb-1"></div>
       <a mat-button [routerLink]="" (click)="addNode()">ADD</a>
     }

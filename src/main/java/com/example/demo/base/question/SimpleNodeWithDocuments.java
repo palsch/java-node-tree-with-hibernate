@@ -16,7 +16,7 @@ import java.util.Optional;
 @Setter
 
 @MappedSuperclass
-public abstract class SimpleQuestionWithDocuments extends NodeWithDocuments<SimpleQuestionWithDocuments> {
+public abstract class SimpleNodeWithDocuments extends NodeWithDocuments<SimpleNodeWithDocuments> {
 
     /**
      * Simple questions do not have child nodes.
@@ -33,7 +33,7 @@ public abstract class SimpleQuestionWithDocuments extends NodeWithDocuments<Simp
      * @return empty
      */
     @Override
-    protected final Optional<SimpleQuestionWithDocuments> createNewChildNode() {
+    protected final Optional<SimpleNodeWithDocuments> createNewChildNode() {
         return Optional.empty();
     }
 

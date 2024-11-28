@@ -50,12 +50,7 @@ DELETE http://localhost:9999/api/ale_antrag/{{antrag_id}}/child-nodes/8e0a1fa0-a
 PATCH http://localhost:9999/api/ale_antrag/{{antrag_id}}/child-nodes
 Content-Type: application/json
 
-{
-  "id": "{{work_ability_id}}",
-  "childNodes": [  ],
-  "dtype": "work_ability",
-  "yesNo": true
-}
+{"id":"{{work_ability_id}}","dtype":"work_ability_question","parentId":"8b1df85b-0430-41ac-82b8-e91b8e031b06","documentUploads":[{"id":"b2b02fbf-49bb-43fd-9b36-2608c3470662","nodeId":"2dab843c-172a-4ade-84ab-14be053d0503","type":"REQUIRED","laterUpload":null,"attachments":[],"maxDocsCount":3,"required":true,"docTypes":["MEDICAL_CERTIFICATE"]}],"yesNo":false,"workAbilityPercent":123,"childNodes":[]}
 
 ### update disability_insurance
 PATCH http://localhost:9999/api/ale_antrag/{{antrag_id}}/child-nodes
@@ -77,7 +72,7 @@ Content-Type: application/json
   "id": "{{disability_insurance_id}}",
   "childNodes": [
       {
-      "id": "5f0b5cde-4bd7-49f2-8481-9cc09f061053",
+      "id": "640eaa93-486c-446a-9b51-26f45a09f5d0",
       "childNodes": [],
       "dtype": "disability_insurance_answer",
       "requiredDocumentUpload": null,
