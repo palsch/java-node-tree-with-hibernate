@@ -7,7 +7,6 @@ import com.example.demo.base.documents.DocumentUploadType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.PostUpdate;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Base class for questions with documents.
@@ -39,6 +39,8 @@ public abstract class NodeWithDocuments<TChildNode extends NodeEntity<?>> extend
      * <p>
      * This method should update all the attributes of the node. But NOT the document uploads.
      * The method is called by {@link #updateNode(NodeEntity)}. The given data is of the same type as the node.
+     *
+     * @return change log // TODO: change log return type
      */
     protected abstract String updateNodeImpl(NodeEntity<?> nodeEntity);
 
@@ -62,17 +64,17 @@ public abstract class NodeWithDocuments<TChildNode extends NodeEntity<?>> extend
      * Then sets up the required and optional document uploads.
      *
      * @param nodeEntity the nodeEntity to update
-     * @return
+     * @return // TODO: change log return type
      */
     @Override
     final protected String updateNode(NodeEntity<?> nodeEntity) {
         // update node
-        updateNodeImpl(nodeEntity);
+        String changeLog = updateNodeImpl(nodeEntity);
 
         // setup of update required and optional document upload
-        setupDocumentUploads();
+        changeLog += setupDocumentUploads();
 
-        return "answer updated";
+        return changeLog;
     }
 
     /**
@@ -81,18 +83,22 @@ public abstract class NodeWithDocuments<TChildNode extends NodeEntity<?>> extend
      * This method is called after the node is persisted or updated.
      * It sets up the document uploads based on the configuration.
      */
-    @PostUpdate
-    private void setupDocumentUploads() {
+    private String setupDocumentUploads() {
         log.debug("SETUP_DOCUMENT_UPLOADS for {} - id {}", this.getClass().getSimpleName(), this.getId());
 
         Map<DocumentUploadType, DocumentUploadConfiguration> documentUploadConfigurations = getDocumentUploadConfigurations();
         // remove the document uploads by type if no configuration is available for that type
-        documentUploads.stream().filter(documentUpload -> !documentUploadConfigurations.containsKey(documentUpload.getType()))
-                .forEach(documentUpload -> {
-                    documentUpload.setNode(null);
-                    documentUploads.remove(documentUpload);
-                    // TODO: domain event listener to delete attachments from document storage service
-                });
+        Set<DocumentUpload> toRemove = documentUploads.stream()
+                // filter out document uploads that are not in the configuration or have no document types
+                // IMPORTANT: this will also remove all doc uploads with attachments
+                .filter(documentUpload -> !documentUploadConfigurations.containsKey(documentUpload.getType()) || documentUploadConfigurations.get(documentUpload.getType()).documentTypes().isEmpty())
+                .collect(Collectors.toSet());
+        toRemove.forEach(documentUpload -> {
+            documentUpload.setNode(null);
+            documentUploads.remove(documentUpload);
+            // TODO: domain event listener to delete attachments from document storage service
+        });
+        documentUploads.removeAll(toRemove);
 
         // setup document uploads by configuration
         documentUploadConfigurations.forEach((type, configuration) -> {
@@ -124,6 +130,7 @@ public abstract class NodeWithDocuments<TChildNode extends NodeEntity<?>> extend
         Map<DocumentUploadType, DocumentUploadConfiguration> configurations = documentUploadConfigurations;
         documentUploads.removeIf(documentUpload -> !configurations.containsKey(documentUpload.getType()));
         // TODO: domain event listener to delete attachments from document storage service
+        return "";
     }
 
     private DocumentUpload findDocumentUploadByType(DocumentUploadType type) {
