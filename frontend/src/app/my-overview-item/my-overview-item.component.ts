@@ -28,9 +28,6 @@ export class MyOverviewItemComponent {
 
   private _clipboard = inject(Clipboard);
 
-  // highlight the overview item if the antrag id is the same as the one in the URL path - use ActiveRoute to highlight the item
-
-
   copyId(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
