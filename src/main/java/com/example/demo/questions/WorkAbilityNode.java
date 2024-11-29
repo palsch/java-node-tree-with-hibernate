@@ -32,7 +32,7 @@ public class WorkAbilityNode extends SimpleNodeWithDocuments {
         Map<DocumentUploadType, DocumentUploadConfiguration> result = new HashMap<>();
         if (getYesNo() != null && getYesNo()) {
             // on yes - medical certificate required
-            result.put(AleAntragDocumentUploadTypes.REQUIRED, new DocumentUploadConfiguration(AleAntragDocumentUploadTypes.REQUIRED, List.of(AleAntragDocumentType.MEDICAL_CERTIFICATE), 3, true));
+            result.put(AleAntragDocumentUploadTypes.REQUIRED, new DocumentUploadConfiguration(List.of(AleAntragDocumentType.MEDICAL_CERTIFICATE), 3, true));
         }
         return result;
     }

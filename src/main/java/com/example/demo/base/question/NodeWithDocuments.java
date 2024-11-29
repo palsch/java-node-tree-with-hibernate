@@ -7,7 +7,6 @@ import com.example.demo.base.documents.DocumentUploadType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.PostPersist;
 import jakarta.persistence.PostUpdate;
 import lombok.Getter;
 import lombok.Setter;
@@ -86,8 +85,17 @@ public abstract class NodeWithDocuments<TChildNode extends NodeEntity<?>> extend
     private void setupDocumentUploads() {
         log.debug("SETUP_DOCUMENT_UPLOADS for {} - id {}", this.getClass().getSimpleName(), this.getId());
 
+        Map<DocumentUploadType, DocumentUploadConfiguration> documentUploadConfigurations = getDocumentUploadConfigurations();
+        // remove the document uploads by type if no configuration is available for that type
+        documentUploads.stream().filter(documentUpload -> !documentUploadConfigurations.containsKey(documentUpload.getType()))
+                .forEach(documentUpload -> {
+                    documentUpload.setNode(null);
+                    documentUploads.remove(documentUpload);
+                    // TODO: domain event listener to delete attachments from document storage service
+                });
+
         // setup document uploads by configuration
-        getDocumentUploadConfigurations().forEach((type, configuration) -> {
+        documentUploadConfigurations.forEach((type, configuration) -> {
             DocumentUpload documentUpload = findDocumentUploadByType(type);
             if (documentUpload != null) {
                 // use modifiable list - so hibernate can update the list if required
@@ -113,7 +121,7 @@ public abstract class NodeWithDocuments<TChildNode extends NodeEntity<?>> extend
         });
 
         // remove document uploads that are not in the configuration
-        Map<DocumentUploadType, DocumentUploadConfiguration> configurations = getDocumentUploadConfigurations();
+        Map<DocumentUploadType, DocumentUploadConfiguration> configurations = documentUploadConfigurations;
         documentUploads.removeIf(documentUpload -> !configurations.containsKey(documentUpload.getType()));
         // TODO: domain event listener to delete attachments from document storage service
     }

@@ -49,7 +49,7 @@ public class ChildPersonalDataQuestion extends SimpleNodeWithDocuments {
     @Transient
     @Override
     protected Map<DocumentUploadType, DocumentUploadConfiguration> getDocumentUploadConfigurations() {
-        return Map.of(AleAntragDocumentUploadTypes.REQUIRED, new DocumentUploadConfiguration(AleAntragDocumentUploadTypes.REQUIRED, List.of(AleAntragDocumentType.BIRTH_CERTIFICATE), 3, true));
+        return Map.of(AleAntragDocumentUploadTypes.REQUIRED, new DocumentUploadConfiguration(List.of(AleAntragDocumentType.BIRTH_CERTIFICATE), 3, true));
     }
 
     private ChildPersonalDataQuestion assertIsChildPersonalDataQuestion(NodeEntity<?> node) {

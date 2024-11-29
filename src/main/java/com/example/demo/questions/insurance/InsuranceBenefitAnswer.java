@@ -42,8 +42,8 @@ public abstract class InsuranceBenefitAnswer extends SimpleNodeWithDocuments {
     @Override
     protected Map<DocumentUploadType, DocumentUploadConfiguration> getDocumentUploadConfigurations() {
         return Map.of(
-                AleAntragDocumentUploadTypes.REQUIRED, new DocumentUploadConfiguration(AleAntragDocumentUploadTypes.REQUIRED, getRequiredDocumentTypes(), 5, true),
-                AleAntragDocumentUploadTypes.OPTIONAL, new DocumentUploadConfiguration(AleAntragDocumentUploadTypes.OPTIONAL, getOptionalDocumentTypes(), 5, false)
+                AleAntragDocumentUploadTypes.REQUIRED, new DocumentUploadConfiguration(getRequiredDocumentTypes(), 5, true),
+                AleAntragDocumentUploadTypes.OPTIONAL, new DocumentUploadConfiguration(getOptionalDocumentTypes(), 5, false)
         );
     }
 
