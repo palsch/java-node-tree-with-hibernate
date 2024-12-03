@@ -7,13 +7,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PreRemove;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.proxy.HibernateProxy;
 
@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
+@Slf4j
 @Getter
 @Builder
 @NoArgsConstructor
@@ -49,9 +50,15 @@ public class Attachment {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private void onDeleteHandling() {
-        System.out.println("onDeleteHandling Attachment");
+    @PreRemove()
+    public void onDestroy() {
+        if (documentUpload == null) {
+            return;
+        }
+
+        documentUpload = null;
+        log.debug("DESTROY_ATTACHMENT - id {}", this.getId());
+        // TODO: domain event on delete
     }
 
     /**

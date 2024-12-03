@@ -21,19 +21,4 @@ public interface AleAntragRepository extends JpaRepository<AleAntrag, UUID> {
             " ORDER BY a.updatedAt DESC")
     List<AleAntragMetadataDto> findAllByOwnerUserId(String ownerUserId);
 
-    @Query(value = """
-            WITH RECURSIVE child_nodes AS (
-                SELECT id, parent_id
-                FROM node
-                WHERE id = ?1
-                UNION ALL
-                SELECT n.id, n.parent_id
-                FROM node n
-                         INNER JOIN child_nodes c ON c.id = n.parent_id
-            )
-            SELECT COUNT(*)
-            FROM child_nodes;
-            """, nativeQuery = true)
-    int countChildNodes(UUID id);
-
 }

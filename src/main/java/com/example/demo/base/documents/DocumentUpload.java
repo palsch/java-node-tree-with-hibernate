@@ -12,17 +12,21 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PreRemove;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+@Slf4j
 @Getter
 @Setter
 @Builder
@@ -59,13 +63,36 @@ public class DocumentUpload {
     @Convert(converter = DocumentTypeListConverter.class)
     private List<DocumentType> docTypes;
 
+    @PreRemove
+    public void onDestroy() {
+        if (node == null) {
+            return;
+        }
+
+        node = null;
+        log.debug("DESTROY_DOCUMENT_UPLOAD - id {}", this.getId());
+        removeAllAttachments();
+    }
+
     public void addAttachment(Attachment attachment) {
         attachments.add(attachment);
     }
 
     public void removeAttachment(UUID attachmentId) {
-        attachments.removeIf(attachment -> attachment.getId().equals(attachmentId));
+        Optional<Attachment> attachmentOptional = attachments.stream()
+                .filter(attachment -> attachment.getId().equals(attachmentId))
+                .findFirst();
+        attachmentOptional.ifPresent(attachment -> {
+            attachment.onDestroy();
+            attachments.remove(attachment);
+        });
+    }
 
-        // TODO: delete attachment from document storage service by domain event listener
+    /**
+     * Remove all attachments from the document upload.
+     */
+    public void removeAllAttachments() {
+        List<UUID> attachmentIdListToRemove = attachments.stream().map(Attachment::getId).toList();
+        attachmentIdListToRemove.forEach(this::removeAttachment);
     }
 }

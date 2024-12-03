@@ -4,7 +4,7 @@ import com.example.demo.base.NodeEntity;
 import com.example.demo.base.documents.DocumentType;
 import com.example.demo.base.documents.DocumentUploadConfiguration;
 import com.example.demo.base.documents.DocumentUploadType;
-import com.example.demo.base.question.SimpleNodeWithDocuments;
+import com.example.demo.base.node.LeafNodeWithDocuments;
 import com.example.demo.questions.AleAntragDocumentType;
 import com.example.demo.questions.AleAntragDocumentUploadTypes;
 import jakarta.persistence.EnumType;
@@ -22,7 +22,7 @@ import java.util.Map;
 @Getter
 @Setter
 @MappedSuperclass
-public abstract class InsuranceBenefitAnswer extends SimpleNodeWithDocuments {
+public abstract class InsuranceBenefitAnswer extends LeafNodeWithDocuments {
 
     private LocalDate requestDate;
     private LocalDate receiveDate;

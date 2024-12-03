@@ -94,11 +94,11 @@ public abstract class YesNoQuestion<TAnswer extends NodeEntity<?>> extends NodeE
         if (this.yesNo == addChildNodeOnYes()) {
             if (this.getChildNodes().isEmpty()) {
                 TAnswer newChildNode = this.createNewChildNode().orElseThrow(() -> new IllegalArgumentException("YesNotQuestion must have a child node: createNewChildNode not correctly implemented"));
-                addNode(newChildNode);
+                addChildNode(newChildNode);
                 return "added first answer";
             }
         } else {
-            removeNodes();
+            removeChildNodes();
             return "removed answers";
         }
         return "no change";

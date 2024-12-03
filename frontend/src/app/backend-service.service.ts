@@ -9,6 +9,7 @@ import { NodeEntity, OverviewItem } from './node.types';
 export class BackendServiceService {
 
   private aleAntragUrl = '/api/ale_antrag';
+  private nodeUrl = '/api/node';
 
   public get_antrag_time = 0;
   public update_node_time = 0;
@@ -39,10 +40,10 @@ export class BackendServiceService {
   }
 
   //### add a child
-  // POST http://localhost:9999/api/ale_antrag/{{antrag_id}}/{{child_question_id}}/child-nodes
-  public addNode(antragId: string, childQuestionId: string): Observable<NodeEntity> {
+  // POST http://localhost:9999/api/node/{{node_id}}
+  public addNode(nodeId: string): Observable<NodeEntity> {
     const start = Date.now();
-    return this.httpClient.post<NodeEntity>(`${this.aleAntragUrl}/${antragId}/${childQuestionId}/child-nodes`, {})
+    return this.httpClient.post<NodeEntity>(`${this.nodeUrl}/${nodeId}`, {})
       .pipe(
         tap(() => this.add_node_time = Date.now() - start)
       );
@@ -50,10 +51,10 @@ export class BackendServiceService {
 
 
   // ### remove a child
-  // DELETE http://localhost:9999/api/ale_antrag/{{antrag_id}}/child-nodes/8e0a1fa0-ab9a-48f9-b60a-e1bda87e9b2a
-  public removeNode(antragId: string, nodeId: string): Observable<NodeEntity> {
+  // DELETE http://localhost:9999/api/node/8e0a1fa0-ab9a-48f9-b60a-e1bda87e9b2a
+  public removeNode(nodeId: string): Observable<NodeEntity> {
     const start = Date.now();
-    return this.httpClient.delete<NodeEntity>(`${this.aleAntragUrl}/${antragId}/child-nodes/${nodeId}`)
+    return this.httpClient.delete<NodeEntity>(`${this.nodeUrl}/${nodeId}`)
       .pipe(
         tap(() => this.delete_node_time = Date.now() - start)
       );
@@ -61,11 +62,11 @@ export class BackendServiceService {
 
 
   //### update node
-  //  PATCH http://localhost:9999/api/ale_antrag/{{antrag_id}}/child-nodes
+  //  PATCH http://localhost:9999/api/node/{{node_id}}
   //    Content-Type: application/json
-  public saveNode(antragId: string, node: NodeEntity): Observable<NodeEntity> {
+  public saveNode(nodeId: string, node: NodeEntity): Observable<NodeEntity> {
     const start = Date.now();
-    return this.httpClient.patch<NodeEntity>(`${this.aleAntragUrl}/${antragId}/child-nodes`, node)
+    return this.httpClient.patch<NodeEntity>(`${this.nodeUrl}/${nodeId}`, node)
       .pipe(
         tap(() => this.update_node_time = Date.now() - start)
       );

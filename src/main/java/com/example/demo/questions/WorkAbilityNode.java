@@ -3,7 +3,7 @@ package com.example.demo.questions;
 import com.example.demo.base.NodeEntity;
 import com.example.demo.base.documents.DocumentUploadConfiguration;
 import com.example.demo.base.documents.DocumentUploadType;
-import com.example.demo.base.question.SimpleNodeWithDocuments;
+import com.example.demo.base.node.LeafNodeWithDocuments;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
@@ -20,7 +20,7 @@ import java.util.Map;
 
 @Entity
 @DiscriminatorValue("work_ability_question")
-public class WorkAbilityNode extends SimpleNodeWithDocuments {
+public class WorkAbilityNode extends LeafNodeWithDocuments {
 
     private Boolean yesNo;
 
@@ -54,7 +54,7 @@ public class WorkAbilityNode extends SimpleNodeWithDocuments {
             this.setWorkAbilityPercent(null);
         }
 
-        return "";
+        return "work ability question updated";
     }
 
     private WorkAbilityNode assertIsWorkAbilityQuestion(NodeEntity<?> question) {

@@ -1,8 +1,8 @@
-package com.example.demo.controller;
+package com.example.demo.base.controller;
 
+import com.example.demo.base.controller.dto.AttachmentUploadDto;
 import com.example.demo.base.documents.Attachment;
 import com.example.demo.base.documents.DocumentUpload;
-import com.example.demo.controller.dto.AttachmentUploadDto;
 import com.example.demo.base.repository.DocumentUploadsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ import static com.example.demo.TestData.ownerUserId;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/ale_antrag/documents")
-public class DocumentApiController {
+public class DocumentController {
 
     public static final String DUMMY_PDF = "dummy.pdf";
 

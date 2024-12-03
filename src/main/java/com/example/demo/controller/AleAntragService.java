@@ -1,10 +1,9 @@
 package com.example.demo.controller;
 
 import com.example.demo.AleAntrag;
-import com.example.demo.base.NodeEntity;
+import com.example.demo.base.repository.NodeEntityRepository;
 import com.example.demo.controller.dto.AleAntragMetadataDto;
 import com.example.demo.repository.AleAntragRepository;
-import com.example.demo.base.repository.NodeEntityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +41,7 @@ public class AleAntragService {
         assertOwnerUserId(id);
 
         Optional<AleAntrag> byIdWithChildNodes = aleAntragRepository.findById(id);
-        if(byIdWithChildNodes.isPresent()) {
+        if (byIdWithChildNodes.isPresent()) {
             AleAntrag aleAntrag = (AleAntrag) byIdWithChildNodes.get();
             return Optional.of(aleAntrag);
         }
@@ -54,56 +53,6 @@ public class AleAntragService {
         assertEditable(id);
 
         aleAntragRepository.deleteById(id);
-    }
-
-    // generic node crud endpoints
-
-    // add a new node
-    @Transactional
-    public NodeEntity<?> addAleAntragNode(UUID antragId, UUID parentId) {
-        assertOwnerUserId(antragId);
-        assertEditable(antragId);
-        nodeEntityRepository.updateNodeUpdatedAt(antragId);
-
-        NodeEntity<?> nodeEntity = nodeEntityRepository.findById(parentId).orElseThrow();
-        NodeEntity<?> newChildNodeEntity = nodeEntity.addNewChildNode().orElseThrow();
-
-        // save the new child node first, so the @PrePersist method lifecycle can create the child nodes
-        newChildNodeEntity = nodeEntityRepository.save(newChildNodeEntity);
-
-        // save all child nodes explicitly, because Hibernate does not save them automatically if they were created inside the @PrePersist method lifecycle
-        nodeEntityRepository.saveAll(newChildNodeEntity.getAllChildNodes());
-        return newChildNodeEntity;
-    }
-
-    // update any node from the antrag
-    @Transactional
-    public NodeEntity<?> updateChildNode(UUID antragId, NodeEntity<?> updateNodeEntity) {
-        assertOwnerUserId(antragId);
-        assertEditable(antragId);
-        nodeEntityRepository.updateNodeUpdatedAt(antragId);
-
-        NodeEntity<?> nodeEntityToUpdate = nodeEntityRepository.findById(updateNodeEntity.getId()).orElseThrow();
-        nodeEntityToUpdate.update(updateNodeEntity);
-
-        // save all child nodes first explicitly, so they are not remove by Hibernate from the parent node on save,
-        // because Hibernate does not save them automatically if they were created inside the @PrePersist method lifecycle
-        nodeEntityRepository.saveAll(nodeEntityToUpdate.getAllChildNodes());
-        // save the updated node
-        nodeEntityRepository.save(nodeEntityToUpdate);
-        return nodeEntityToUpdate;
-    }
-
-    // delete any node by id from the antrag
-    @Transactional
-    public void deleteChildNode(UUID antragId, UUID childId) {
-        assertOwnerUserId(antragId);
-        assertEditable(antragId);
-        nodeEntityRepository.updateNodeUpdatedAt(antragId);
-
-        AleAntrag aleAntrag = aleAntragRepository.findById(antragId).orElseThrow();
-        aleAntrag.removeNodeById(childId);
-        aleAntragRepository.save(aleAntrag);
     }
 
     private void assertOwnerUserId(UUID antragId) {

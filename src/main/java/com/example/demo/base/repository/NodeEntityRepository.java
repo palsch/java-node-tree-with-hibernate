@@ -9,6 +9,9 @@ import java.util.UUID;
 
 public interface NodeEntityRepository extends JpaRepository<NodeEntity<?>, UUID> {
 
+    /**
+     * Count the number of child nodes of the given node.
+     */
     @Query(value = """
             WITH RECURSIVE child_nodes AS (
                 SELECT id, parent_id
@@ -25,7 +28,7 @@ public interface NodeEntityRepository extends JpaRepository<NodeEntity<?>, UUID>
     int countChildNodes(UUID id);
 
     /**
-     * Update the updated_at timestamp of the given node by id and the complete node tree.
+     * Update the updated_at timestamp of the given node by id and the complete parent node tree to the root node.
      */
     @Modifying
     @Query(value = """
@@ -43,4 +46,23 @@ public interface NodeEntityRepository extends JpaRepository<NodeEntity<?>, UUID>
             WHERE id IN (SELECT id FROM parent_nodes);
             """, nativeQuery = true)
     void updateNodeUpdatedAt(UUID id);
+
+    /**
+     * Get the root node of the given node.
+     */
+    @Query(value = """
+            WITH RECURSIVE parent_nodes AS (
+                SELECT id, parent_id
+                FROM node
+                WHERE id = ?1
+                UNION ALL
+                SELECT n.id, n.parent_id
+                FROM node n
+                         INNER JOIN parent_nodes p ON p.parent_id = n.id
+            )
+            SELECT id
+            FROM parent_nodes
+            WHERE parent_id IS NULL;
+            """, nativeQuery = true)
+    UUID getRootNodeId(UUID id);
 }

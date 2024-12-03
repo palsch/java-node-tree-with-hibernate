@@ -23,7 +23,7 @@ public class Child extends NodeEntity<NodeEntity<?>> {
     @Override
     protected void initializeNode() {
         // add questions
-        addNode(ChildPersonalDataQuestion.builder().build());
+        addChildNode(ChildPersonalDataQuestion.builder().build());
     }
 
     @Override
@@ -46,6 +46,14 @@ public class Child extends NodeEntity<NodeEntity<?>> {
         if (!(nodeEntity instanceof Child)) {
             throw new IllegalArgumentException("Not a child");
         }
+    }
+
+    /**
+     * Removing child nodes is NOT allowed for a Child, because those child nodes are questions of a child
+     */
+    @Override
+    protected boolean isRemoveChildNodesAllowed() {
+        return false;
     }
 }
 

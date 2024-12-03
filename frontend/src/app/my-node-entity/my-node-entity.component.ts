@@ -135,7 +135,7 @@ export class MyNodeEntityComponent {
       return;
     }
 
-    this.backendService.removeNode(this.antragId(), node.id)
+    this.backendService.removeNode(node.id)
       .pipe(
         // don't do anything if node is not defined
         filter(() => !!this.nodeEntityToRender()),

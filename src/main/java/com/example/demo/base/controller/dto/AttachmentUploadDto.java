@@ -1,4 +1,4 @@
-package com.example.demo.controller.dto;
+package com.example.demo.base.controller.dto;
 
 import com.example.demo.questions.AleAntragDocumentType;
 import lombok.Getter;

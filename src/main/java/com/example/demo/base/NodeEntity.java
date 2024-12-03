@@ -19,6 +19,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreRemove;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -86,8 +87,7 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     /**
      * Reference to the parent node, if applicable
      */
-    @JsonIgnore
-    @Getter(AccessLevel.NONE)
+    @JsonIgnore // ignore the parent node in the json response
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id") // Foreign key to the parent node
     protected NodeEntity<?> parent;
@@ -118,16 +118,30 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
      */
     @PrePersist
     @PreUpdate
-    protected void init() {
+    final protected void init() {
         // initialize the node only once and do this only if the id is defined by hibernate
         if (id == null) {
             id = UUID.randomUUID();
             initializeNode();
             updateTypeFromDiscriminator();
-            log.debug("INIT NODE {} - dtype '{}'", this.getClass().getSimpleName(), this.dtype, this.id);
+            log.debug("INIT NODE: {} - dtype '{}'", this.getClass().getSimpleName(), this.dtype, this.id);
+        }
+
+        // check if parent defined when not root node
+        if (!isRootNode() && parent == null) {
+            throw new IllegalArgumentException("Parent node is not defined");
         }
 
         initChildNodes();
+    }
+
+    /**
+     * Clean up the node before it is removed from the database.
+     */
+    @PreRemove
+    final protected void destroy() {
+        log.debug("DESTROY NODE: {} - dtype '{}'", this.getClass().getSimpleName(), this.dtype, this.id);
+        onDestroyNode();
     }
 
     /**
@@ -174,7 +188,7 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     protected abstract Optional<TChildNode> createNewChildNode();
 
     /**
-     * Adds a new child node by calling {@link #createNewChildNode()} and then {@link #addNode(NodeEntity)}.
+     * Adds a new child node by calling {@link #createNewChildNode()} and then {@link #addChildNode(NodeEntity)}.
      * <p>
      * If no child node was created by {@link #createNewChildNode()}, an empty Optional is returned.
      *
@@ -187,8 +201,22 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
             return Optional.empty();
         }
 
-        addNode(newChildNodeOptional.get());
+        addChildNode(newChildNodeOptional.get());
         return newChildNodeOptional;
+    }
+
+    /**
+     * Override this method and return true if this node is the root node.
+     * <p>
+     * default is false: the node can have a parent node
+     * <p>
+     * If this method returns true, setting the parent node is not allowed.
+     *
+     * @return true if this node is the root node (default is false)
+     */
+    @JsonIgnore
+    public boolean isRootNode() {
+        return false;
     }
 
     /**
@@ -205,6 +233,19 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     }
 
     /**
+     * This method is called before the node is removed.
+     * <p>
+     * Override this method to clean up the node if needed
+     * <p>
+     * <b>IMPORTANT</b>: Don't call this method directly, it is called automatically.
+     * <p>
+     * Example implementation: remove document uploads and trigger domain event for them
+     */
+    protected void onDestroyNode() {
+        // override this method to clean up the node if needed
+    }
+
+    /**
      * Override this method if you want to prevent the last child node from being removed on special conditions.
      * E.g. if at least one answer must be present for a yes/no question.
      *
@@ -216,14 +257,14 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
     }
 
     /**
-     * Override this method if you want to allow the removal of child nodes.
+     * Override this method if you want to prevent the removal of child nodes.
      * <p>
-     * By default, child nodes cannot be removed.
+     * By default, child nodes can be removed.
      *
-     * @return true if child nodes can be removed (default is false)
+     * @return true if child nodes can be removed (default is true)
      */
     protected boolean isRemoveChildNodesAllowed() {
-        return false;
+        return true;
     }
 
     /**
@@ -323,7 +364,7 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
      *
      * @param node the node to add
      */
-    final public void addNode(TChildNode node) {
+    final public void addChildNode(TChildNode node) {
         assertAddChildNodeIsAllowed();
 
         if (node == null) {
@@ -369,7 +410,13 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
         return false;
     }
 
-    final public void removeNode(NodeEntity<?> nodeEntity) {
+    /**
+     * Remove a node from the child nodes if allowed.
+     *
+     * @param nodeEntity the node to remove
+     * @return change log // TODO: change log return type
+     */
+    final public String removeNode(NodeEntity<?> nodeEntity) {
         // first try to remove from the current nodeEntity
         if (childNodes.contains(nodeEntity)) {
             assertRemoveChildNodesIsAllowed();
@@ -380,13 +427,16 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
 
             childNodes.remove(nodeEntity);
             removeParentFromNode(nodeEntity);
-            return;
+            // TODO: Domain Event for node removed
+            return "removed node: " + nodeEntity.getId();
         }
 
         // if not found, try to remove from the child nodes
+        String changeLog = "";
         for (TChildNode childNode : childNodes) {
-            childNode.removeNode(nodeEntity);
+            changeLog += childNode.removeNode(nodeEntity);
         }
+        return changeLog;
     }
 
     /**
@@ -406,20 +456,45 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
 
     /**
      * Remove all child nodes if allowed.
+     * <p>
+     * Checks if the child nodes can be removed of the current node.
+     * If allowed, the complete subtree of each child is removed.
      *
+     * @return change log // TODO: change log return type
      * @see #isRemoveChildNodesAllowed()
+     * @see #isRemoveLastChildNodeAllowed()
      */
-    final public void removeNodes() {
+    final public String removeChildNodes() {
         assertRemoveChildNodesIsAllowed();
         assertRemoveLastChildNodeIsAllowed();
 
+        return removeChildNodesOfRemovedNode();
+    }
+
+    /**
+     * Remove all child nodes of the removed node. This method is called recursively.
+     * <p>
+     * No checks are done here, because the checks are done in the calling public method.
+     *
+     * @return change log // TODO: change log return type
+     */
+    final protected String removeChildNodesOfRemovedNode() {
+        StringBuilder changeLog = new StringBuilder();
         for (TChildNode node : childNodes) {
             removeParentFromNode(node);
+            changeLog.append(node.removeChildNodesOfRemovedNode());
         }
         childNodes.clear();
+        return changeLog.toString();
     }
 
     private void setSelfAsParentToNode(NodeEntity<?> node) {
+        if (node == null) {
+            throw new IllegalArgumentException("node is null");
+        }
+        if (node == this) {
+            throw new IllegalArgumentException("Cannot set myself as parent");
+        }
         node.setParent(this);
         node.setParentId(this.getId());
     }
@@ -437,7 +512,7 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
 
     private void assertRemoveChildNodesIsAllowed() {
         if (!isRemoveChildNodesAllowed()) {
-            throw new IllegalArgumentException("Cannot remove child nodes");
+            throw new IllegalArgumentException("Cannot remove child nodes on this node %s".formatted(this.dtype));
         }
     }
 
@@ -445,6 +520,23 @@ public abstract class NodeEntity<TChildNode extends NodeEntity<?>> {
         if (!isRemoveLastChildNodeAllowed()) {
             throw new IllegalArgumentException("Cannot remove the last child node");
         }
+    }
+
+    public void setParent(NodeEntity<?> parent) {
+        if (isRootNode()) {
+            throw new IllegalArgumentException("Cannot set parent node for root node");
+        }
+
+        this.parent = parent;
+        this.parentId = parent != null ? parent.getId() : null;
+    }
+
+    public void setParentId(UUID parentId) {
+        if (isRootNode()) {
+            throw new IllegalArgumentException("Cannot set parent node for root node");
+        }
+
+        this.parentId = parentId;
     }
 
     @Override

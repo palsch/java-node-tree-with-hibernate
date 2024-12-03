@@ -1,6 +1,5 @@
-package com.example.demo.base.question;
+package com.example.demo.base.node;
 
-import com.example.demo.base.NodeEntity;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +7,7 @@ import lombok.Setter;
 import java.util.Optional;
 
 /**
- * Base class for simple questions.
+ * Base class for simple questions with documents.
  * <p>
  * A simple question is a question that does not have any sub-questions / sub-nodes.
  * It is a leaf node in the question tree.
@@ -17,7 +16,7 @@ import java.util.Optional;
 @Setter
 
 @MappedSuperclass
-public abstract class SimpleQuestion extends NodeEntity<SimpleQuestion>  {
+public abstract class LeafNodeWithDocuments extends NodeWithDocuments<LeafNodeWithDocuments> {
 
     /**
      * Simple questions do not have child nodes.
@@ -34,7 +33,7 @@ public abstract class SimpleQuestion extends NodeEntity<SimpleQuestion>  {
      * @return empty
      */
     @Override
-    protected final Optional<SimpleQuestion> createNewChildNode() {
+    protected final Optional<LeafNodeWithDocuments> createNewChildNode() {
         return Optional.empty();
     }
 

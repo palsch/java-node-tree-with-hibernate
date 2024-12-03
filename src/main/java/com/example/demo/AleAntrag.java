@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import com.example.demo.base.NodeEntity;
+import com.example.demo.base.node.RootNode;
 import com.example.demo.questions.ChildQuestion;
 import com.example.demo.questions.IbanQuestion;
 import com.example.demo.questions.WorkAbilityNode;
@@ -23,16 +24,25 @@ import static com.example.demo.TestData.ownerUserId;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorValue("ale_antrag")
-public class AleAntrag extends NodeEntity<NodeEntity<?>> {
+public class AleAntrag extends RootNode {
 
     @Embedded
     private AleAntragMetadata metadaten;
 
+    /**
+     * Update the ale antrag node attributes if required.
+     *
+     * @param nodeEntity the nodeEntity to update
+     * @return change log // TODO: change log return type
+     */
     @Override
     protected String updateNode(NodeEntity<?> nodeEntity) {
         return "";
     }
 
+    /**
+     * All required children nodes are created in the initializeNode method
+     */
     @Override
     public Optional<NodeEntity<?>> createNewChildNode() {
         return Optional.empty();
@@ -49,9 +59,17 @@ public class AleAntrag extends NodeEntity<NodeEntity<?>> {
                 .build());
 
         // add questions
-        addNode(new IbanQuestion()); // question 2
-        addNode(new WorkAbilityNode()); // question 3
-        addNode(new ChildQuestion()); // question 4
-        addNode(new DisabilityInsuranceQuestion()); // question 5c
+        addChildNode(new IbanQuestion()); // question 2
+        addChildNode(new WorkAbilityNode()); // question 3
+        addChildNode(new ChildQuestion()); // question 4
+        addChildNode(new DisabilityInsuranceQuestion()); // question 5c
+    }
+
+    /**
+     * Removing child nodes is NOT allowed for AleAntrag
+     */
+    @Override
+    protected boolean isRemoveChildNodesAllowed() {
+        return false;
     }
 }

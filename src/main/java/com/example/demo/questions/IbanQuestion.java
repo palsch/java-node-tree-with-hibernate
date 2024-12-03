@@ -1,7 +1,7 @@
 package com.example.demo.questions;
 
 import com.example.demo.base.NodeEntity;
-import com.example.demo.base.question.SimpleQuestion;
+import com.example.demo.base.node.LeafNode;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.Getter;
@@ -15,7 +15,7 @@ import lombok.Setter;
 
 @Entity
 @DiscriminatorValue("iban_question")
-public class IbanQuestion extends SimpleQuestion {
+public class IbanQuestion extends LeafNode {
 
     private String iban;
 

@@ -1,17 +1,15 @@
 package com.example.demo.controller;
 
 import com.example.demo.AleAntrag;
-import com.example.demo.base.NodeEntity;
+import com.example.demo.base.controller.NodeController;
+import com.example.demo.base.service.NodeService;
 import com.example.demo.controller.dto.AleAntragMetadataDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,8 +19,11 @@ import java.util.UUID;
 @RequestMapping("/api/ale_antrag")
 public class AleAntragController {
 
-    @Autowired
-    private AleAntragService aleAntragService;
+    private final AleAntragService aleAntragService;
+
+    public AleAntragController(AleAntragService aleAntragService) {
+        this.aleAntragService = aleAntragService;
+    }
 
     // Overview
     @GetMapping
@@ -36,7 +37,7 @@ public class AleAntragController {
         return ResponseEntity.ok(aleAntragService.createAleAntrag());
     }
 
-    // Transactional is required to avoid LazyInitializationException
+    // TODO: Transactional is required to avoid LazyInitializationException - is this still correct?
     @Transactional(readOnly = true)
     @GetMapping("/{id}")
     public ResponseEntity<AleAntrag> getAleAntrag(@PathVariable UUID id) {
@@ -48,27 +49,4 @@ public class AleAntragController {
         aleAntragService.deleteAleAntrag(id);
         return ResponseEntity.noContent().build();
     }
-
-    // generic node crud endpoints
-
-    // add a new node
-    @PostMapping("/{antragId}/{parentId}/child-nodes")
-    public ResponseEntity<NodeEntity<?>> addAleAntragNode(@PathVariable UUID antragId, @PathVariable UUID parentId) {
-        return ResponseEntity.ok(aleAntragService.addAleAntragNode(antragId, parentId));
-    }
-
-    // update any node from the antrag
-    @PatchMapping("/{antragId}/child-nodes")
-    public ResponseEntity<NodeEntity<?>> updateChildNode(@PathVariable UUID antragId, @RequestBody NodeEntity<?> updateNodeEntity) {
-        return ResponseEntity.ok(aleAntragService.updateChildNode(antragId, updateNodeEntity));
-    }
-
-    // delete any node by id from the antrag
-    @DeleteMapping("/{antragId}/child-nodes/{childId}")
-    public ResponseEntity<Void> deleteChildNode(@PathVariable UUID antragId, @PathVariable UUID childId) {
-        aleAntragService.deleteChildNode(antragId, childId);
-        return ResponseEntity.noContent().build();
-    }
-
-
 }

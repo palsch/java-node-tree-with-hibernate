@@ -1,4 +1,4 @@
-package com.example.demo.base.question;
+package com.example.demo.base.node;
 
 import com.example.demo.base.NodeEntity;
 import com.example.demo.base.documents.DocumentUpload;
@@ -13,8 +13,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -58,6 +61,15 @@ public abstract class NodeWithDocuments<TChildNode extends NodeEntity<?>> extend
     }
 
     /**
+     * Remove all document uploads and delete all attachments by triggering the attachment deleted event
+     */
+    @Override
+    protected void onDestroyNode() {
+        log.debug("DESTROY_DOCUMENT_UPLOADS for {} - id {}", this.getClass().getSimpleName(), this.getId());
+        removeAllDocumentUploads();
+    }
+
+    /**
      * Updates the node with the given data.
      * <p>
      * Calls {@link #updateNodeImpl(NodeEntity)} to update the node.
@@ -94,8 +106,8 @@ public abstract class NodeWithDocuments<TChildNode extends NodeEntity<?>> extend
                 .filter(documentUpload -> !documentUploadConfigurations.containsKey(documentUpload.getType()) || documentUploadConfigurations.get(documentUpload.getType()).documentTypes().isEmpty())
                 .collect(Collectors.toSet());
         toRemove.forEach(documentUpload -> {
-            documentUpload.setNode(null);
             documentUploads.remove(documentUpload);
+            documentUpload.onDestroy();
             // TODO: domain event listener to delete attachments from document storage service
         });
         documentUploads.removeAll(toRemove);
@@ -138,6 +150,24 @@ public abstract class NodeWithDocuments<TChildNode extends NodeEntity<?>> extend
                 .filter(documentUpload -> documentUpload.getType().name().equals(type.name()))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private void removeDocumentUpload(UUID documentUploadId) {
+        Optional<DocumentUpload> documentUploadOptional = documentUploads.stream()
+                .filter(documentUpload -> documentUpload.getId().equals(documentUploadId))
+                .findFirst();
+        documentUploadOptional.ifPresent(documentUpload -> {
+            documentUpload.onDestroy();
+            documentUploads.remove(documentUpload);
+        });
+    }
+
+    /**
+     * Remove all document uploads from the node.
+     */
+    private void removeAllDocumentUploads() {
+        List<UUID> documentUploadIdListToRemove = documentUploads.stream().map(DocumentUpload::getId).toList();
+        documentUploadIdListToRemove.forEach(this::removeDocumentUpload);
     }
 }
 
